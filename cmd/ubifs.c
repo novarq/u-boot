@@ -122,7 +122,15 @@ static int do_ubifs_load(struct cmd_tbl *cmdtp, int flag, int argc,
 	if (argc < 3)
 		return CMD_RET_USAGE;
 
-	addr = hextoul(argv[1], &endp);
+	if (!strcmp(argv[1], "-")) {
+		const char *addr_str = env_get("loadaddr");
+		if (addr_str != NULL)
+			addr = hextoul(addr_str, NULL);
+		else
+			addr = CONFIG_SYS_LOAD_ADDR;
+	} else
+		addr = hextoul(argv[1], &endp);
+
 	if (endp == argv[1])
 		return CMD_RET_USAGE;
 
