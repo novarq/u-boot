@@ -56,6 +56,7 @@
 #define DW_SPI_IDR			0x58
 #define DW_SPI_VERSION			0x5c
 #define DW_SPI_DR			0x60
+#define DW_SPI_RX_SAMPLE_DLY		0xf0
 
 /* Bit fields in CTRLR0 */
 /*
@@ -118,12 +119,15 @@
 
 struct dw_spi_plat {
 	s32 frequency;		/* Default clock frequency, -1 for none */
+	u32 rx_dly_us;		/* Non-zero iff need to set */
 	void __iomem *regs;
 };
 
 struct dw_spi_priv {
 	struct clk clk;
 	struct reset_ctl_bulk resets;
+	u32 rx_sample_dly;
+
 	struct gpio_desc cs_gpio;	/* External chip-select gpio */
 
 	u32 (*update_cr0)(struct dw_spi_priv *priv);
@@ -262,6 +266,11 @@ static int dw_spi_of_to_plat(struct udevice *bus)
 
 	dev_info(bus, "max-frequency=%d\n", plat->frequency);
 
+	plat->rx_dly_us = dev_read_u32_default(bus, "spi-rx-delay-us",
+						   0);
+	debug("%s: regs=%p max-frequency=%d rx-delay-us=%d\n", __func__,
+	      plat->regs, plat->frequency, plat->rx_dly_us);
+
 	return request_gpio_cs(bus);
 }
 
@@ -270,6 +279,9 @@ static void spi_hw_init(struct udevice *bus, struct dw_spi_priv *priv)
 {
 	dw_write(priv, DW_SPI_SSIENR, 0);
 	dw_write(priv, DW_SPI_IMR, 0);
+	/* Set sample delay, if required */
+	if (priv->rx_sample_dly)
+		dw_write(priv, DW_SPI_RX_SAMPLE_DLY, priv->rx_sample_dly);
 	dw_write(priv, DW_SPI_SSIENR, 1);
 
 	/*
@@ -369,6 +381,9 @@ static int dw_spi_probe(struct udevice *bus)
 	ret = dw_spi_get_clk(bus, &priv->bus_clk_rate);
 	if (ret)
 		return ret;
+
+	/* Convert (optional) rx delay from us to bus ticks */
+	priv->rx_sample_dly = plat->rx_dly_us / (priv->bus_clk_rate / 1000000);
 
 	ret = dw_spi_reset(bus);
 	if (ret)
