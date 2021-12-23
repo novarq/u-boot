@@ -19,10 +19,12 @@
 
 #include <asm/io.h>
 #if CONFIG_IS_ENABLED(DM_SERIAL)
-#include <asm/arch/atmel_serial.h>
+#include <dm/platform_data/atmel_serial.h>
 #endif
+#ifdef CONFIG_ARCH_AT91
 #include <asm/arch/clk.h>
 #include <asm/arch/hardware.h>
+#endif
 
 #include "atmel_usart.h"
 
