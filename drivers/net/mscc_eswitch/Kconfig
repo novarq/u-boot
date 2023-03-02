@@ -44,3 +44,10 @@ config MSCC_FELIX_SWITCH
 	help
 	  This driver supports the Ethernet switch integrated in the
 	  NXP LS1028A SoC.
+
+config MSCC_SPARX5_SWITCH
+	bool "Sparx5 switch driver"
+	depends on DM_ETH && TARGET_SPARX5
+	select PHYLIB
+	help
+	  This driver supports the Sparx5 network switch device.
