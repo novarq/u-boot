@@ -17,12 +17,12 @@
 /* 32-bit register interface */
 #define CONFIG_SYS_NS16550_MEM32
 
-#define CONFIG_SYS_CBSIZE               SZ_1K
-#define CONFIG_ENV_SIZE                 SZ_8K
+//#define CONFIG_SYS_CBSIZE               SZ_1K
+//#define CONFIG_ENV_SIZE                 SZ_8K
 
 #if defined(CONFIG_ENV_IS_IN_SPI_FLASH)
-#define CONFIG_ENV_OFFSET               SZ_1M
-#define CONFIG_ENV_SECT_SIZE		SZ_256K
+//#define CONFIG_ENV_OFFSET               SZ_1M
+//#define CONFIG_ENV_SECT_SIZE		SZ_256K
 
 #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 #define CONFIG_ENV_SIZE_REDUND		CONFIG_ENV_SIZE
@@ -41,18 +41,19 @@
 #define PHYS_SDRAM_1                    PHYS_DDR
 #define VIRT_SDRAM_1                    VIRT_DDR
 #define CONFIG_SYS_SDRAM_BASE		VIRT_SDRAM_1
-#define CONFIG_SYS_LOAD_ADDR		(VIRT_SDRAM_1 + (PHYS_SDRAM_1_SIZE/2))
+//#define CONFIG_SYS_LOAD_ADDR		(VIRT_SDRAM_1 + (PHYS_SDRAM_1_SIZE/2))
 
-#define CONFIG_SYS_INIT_SP_ADDR         BOOT0_SP_ADDR
+#define CFG_SYS_INIT_RAM_ADDR		PHYS_SRAM_ADDR
+#define CFG_SYS_INIT_RAM_SIZE		PHYS_SRAM_SIZE
 
 /* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + SZ_8M)
+//#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + SZ_8M)
 
 #if defined(CONFIG_CMD_MEMTEST)
 /* Allow first 128M for memory test */
-#define CONFIG_SYS_MEMTEST_START	VIRT_SDRAM_1
-#define CONFIG_SYS_MEMTEST_END		(VIRT_SDRAM_1 + PHYS_SDRAM_1_SIZE - SZ_16M)
-#define CONFIG_SYS_MEMTEST_SCRATCH	(CONFIG_SYS_MEMTEST_END + 64)
+//#define CONFIG_SYS_MEMTEST_START	VIRT_SDRAM_1
+//#define CONFIG_SYS_MEMTEST_END		(VIRT_SDRAM_1 + PHYS_SDRAM_1_SIZE - SZ_16M)
+//#define CONFIG_SYS_MEMTEST_SCRATCH	(CONFIG_SYS_MEMTEST_END + 64)
 #endif
 
 #define CONFIG_GICV3
@@ -68,7 +69,6 @@
 #define PHYS_SRAM_ADDR			0x630000000
 #define PHYS_SRAM_SIZE			SZ_64K
 #define CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK
-#define BOOT0_SP_ADDR			(PHYS_SRAM_ADDR + PHYS_SRAM_SIZE)
 
 #if defined(CONFIG_MTDIDS_DEFAULT) && defined(CONFIG_MTDPARTS_DEFAULT)
 #define SPARX5_DEFAULT_MTD_ENV			      \
@@ -167,6 +167,6 @@
 #define CONFIG_OF_BOARD_SETUP	/* Need to inject misc board stuff */
 
 #define CONFIG_SYS_BOOTMAPSZ	SZ_64M	/* Initial map for Linux*/
-#define CONFIG_SYS_BOOTM_LEN	SZ_64M	/* Increase max gunzip size */
+//#define CONFIG_SYS_BOOTM_LEN	SZ_64M	/* Increase max gunzip size */
 
 #endif	/* __INCL_INCLUDE_CONFIGS_SPARX5__ */

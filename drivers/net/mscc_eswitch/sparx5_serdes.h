@@ -2,6 +2,8 @@
 /*
  * Copyright (c) 2019 Microsemi Corporation
  */
+#include <linux/delay.h>
+
 #include "vtss_sparx5_regs_sd_cmu_term_target.h"
 #include "vtss_sparx5_regs_sd_lane_target.h"
 #include "vtss_sparx5_regs_sd10g_cmu_target.h"

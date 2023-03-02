@@ -12,6 +12,7 @@
 #include <debug_uart.h>
 #include <spi.h>
 #include <asm/sections.h>
+#include <linux/delay.h>
 
 #include "mscc_sparx5_regs_devcpu_gcb.h"
 #include "mscc_sparx5_regs_cpu.h"
@@ -56,7 +57,7 @@ static struct mm_region fa_mem_map[] = {
 
 struct mm_region *mem_map = fa_mem_map;
 
-void reset_cpu(ulong ignore)
+void reset_cpu(void)
 {
 	/* Make sure the core is UN-protected from reset */
 	clrbits_le32(MSCC_CPU_RESET_PROT_STAT,
@@ -312,10 +313,6 @@ int board_init(void)
 	/* CS0 alone on boot master region 0 - SPI NOR flash */
 	writel((u16)~BIT(0), MSCC_DEVCPU_GCB_SPI_MASTER_SS0_MASK);
 
-	/* LED setup */
-	if (IS_ENABLED(CONFIG_LED))
-		led_default_state();
-
 	return 0;
 }
 
@@ -358,7 +355,7 @@ static inline void early_mmu_setup(void)
 
 	/* point TTBR to the new table */
 	set_ttbr_tcr_mair(el, gd->arch.tlb_addr,
-			  get_tcr(el, NULL, NULL) &
+			  get_tcr(NULL, NULL) &
 			  ~(TCR_ORGN_MASK | TCR_IRGN_MASK),
 			  MEMORY_ATTRIBUTES);
 
@@ -366,10 +363,17 @@ static inline void early_mmu_setup(void)
 }
 #endif
 
-void *board_fdt_blob_setup(void)
+void *board_fdt_blob_setup(int *err)
 {
+	*err = 0;
+
 	/* By default, FDT is at end of image */
 	void *fdt = (void *)&_end;
+
+	if (fdt_magic(fdt) != FDT_MAGIC) {
+		*err = -ENXIO;
+		return NULL;
+	}
 
 	/* Detect board - this happens *VERY* early in boot process */
 	do_board_detect();
@@ -432,7 +436,7 @@ static inline void final_mmu_setup(void)
 	invalidate_icache_all();
 
 	/* point TTBR to the new table */
-	set_ttbr_tcr_mair(el, gd->arch.tlb_addr, get_tcr(el, NULL, NULL),
+	set_ttbr_tcr_mair(el, gd->arch.tlb_addr, get_tcr(NULL, NULL),
 			  MEMORY_ATTRIBUTES);
 
 	set_sctlr(get_sctlr() | CR_M);

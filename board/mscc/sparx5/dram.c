@@ -4,6 +4,9 @@
  */
 
 #include <common.h>
+#include <linux/libfdt.h>
+#include <fdtdec.h>
+#include <dm.h>
 
 #include <ddr_init.h>
 #include <ddr_reg.h>

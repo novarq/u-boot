@@ -273,7 +273,7 @@ static int ram_init(void __iomem *addr)
 	writel(BIT(1), addr);
 
 	if (wait_for_bit_le32(addr, BIT(1), false, 2000, false)) {
-		printf("Timeout in memory reset, addr: 0x%08x = 0x%08x\n", addr, readl(addr));
+		printf("Timeout in memory reset, addr: %p = 0x%08x\n", addr, readl(addr));
 		return 1;
 	}
 
@@ -688,7 +688,7 @@ static int sparx5_initialize(struct sparx5_private *priv)
 static int sparx5_start(struct udevice *dev)
 {
 	struct sparx5_private *priv = dev_get_priv(dev);
-	struct eth_pdata *pdata = dev_get_platdata(dev);
+	struct eth_pdata *pdata = dev_get_plat(dev);
 	const u8 mac[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 	int i, ret, phy_ok = 0, ret_err = 0;
 
@@ -899,15 +899,12 @@ static int sparx5_probe(struct udevice *dev)
 			addr_size = resource_size(&res);
 
 			/* If the bus is new then create a new bus */
-			bus = get_mdiobus(addr_base, addr_size);
-			if (!bus) {
-				bus = mscc_mdiobus_init(miim, miim_count, addr_base,
-							addr_size);
-				if (!bus)
-					return -ENOMEM;
-				priv->bus[miim_count++] = bus;
-				mscc_mdiobus_pinctrl_apply(mdio_node);
-			}
+			if (!get_mdiobus(addr_base, addr_size))
+				priv->bus[miim_count] =
+					mscc_mdiobus_init(miim, &miim_count, addr_base,
+							  addr_size);
+			//mscc_mdiobus_pinctrl_apply(mdio_node);
+
 		} else {
 			bus = NULL;
 			phy_addr = -1;
@@ -940,7 +937,7 @@ static int sparx5_probe(struct udevice *dev)
 		      i, priv->ports[i].bus->name, priv->ports[i].phy_addr);
 		phy = phy_connect(priv->ports[i].bus,
 				  priv->ports[i].phy_addr, dev,
-				  PHY_INTERFACE_MODE_NONE);
+				  PHY_INTERFACE_MODE_NA);
 
 		if (phy) {
 			debug("%s: PHY %s %s\n", __FUNCTION__, phy->bus->name, phy->drv->name);
@@ -1000,12 +997,12 @@ U_BOOT_DRIVER(sparx5) = {
 	.probe				= sparx5_probe,
 	.remove				= sparx5_remove,
 	.ops				= &sparx5_ops,
-	.priv_auto_alloc_size		= sizeof(struct sparx5_private),
-	.platdata_auto_alloc_size	= sizeof(struct eth_pdata),
+	.priv_auto			= sizeof(struct sparx5_private),
+	.plat_auto			= sizeof(struct eth_pdata),
 };
 
-static int do_switch(cmd_tbl_t *cmdtp, int flag, int argc,
-		       char * const argv[])
+static int do_switch(struct cmd_tbl *cmdtp, int flag, int argc,
+		     char * const argv[])
 {
 	struct sparx5_private *priv = dev_priv;
 	u8 mac[ETH_ALEN];

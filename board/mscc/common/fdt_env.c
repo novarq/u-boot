@@ -16,7 +16,7 @@ void ft_fwd_env(void *blob, int offset, const char *tag)
 			printf("Unable to add tag %s to DT\n", tag);
 }
 
-int ft_board_setup(void *blob, bd_t *bd)
+int ft_board_setup(void *blob, struct bd_info *bd)
 {
 	int node = fdt_path_offset(blob, "/meba");
 	uchar mac_addr[6];

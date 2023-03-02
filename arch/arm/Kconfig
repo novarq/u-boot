@@ -1893,6 +1893,22 @@ config TARGET_TEN64
 	  Support for Traverse Technologies Ten64 board, based
 	  on NXP LS1088A.
 
+config TARGET_SPARX5
+	bool "Support MSCC Sparx5 platform"
+	select ARM64
+	select ARMV8_SET_SMPEN
+	select ARMV8_MULTIENTRY
+	select ARMV8_SPIN_TABLE
+	select DM
+	select DM_GPIO
+	select DM_SERIAL
+	select OF_CONTROL
+	select SYS_NS16550
+	imply CMD_DM
+	  help
+	  Support for MSCC Sparx5 reference board platform. It support
+	  2Gb DDR, and 2 A53 and a M3 core.
+
 config ARCH_UNIPHIER
 	bool "Socionext UniPhier SoCs"
 	select BOARD_LATE_INIT
@@ -2213,6 +2229,8 @@ source "arch/arm/mach-davinci/Kconfig"
 
 source "arch/arm/mach-exynos/Kconfig"
 
+source "arch/arm/mach-sparx5/Kconfig"
+
 source "arch/arm/mach-hpe/gxp/Kconfig"
 
 source "arch/arm/mach-highbank/Kconfig"
@@ -2358,6 +2376,7 @@ source "board/hisilicon/hikey960/Kconfig"
 source "board/hisilicon/poplar/Kconfig"
 source "board/isee/igep003x/Kconfig"
 source "board/kontron/sl28/Kconfig"
+source "board/mscc/sparx5/Kconfig"
 source "board/myir/mys_6ulx/Kconfig"
 source "board/samsung/common/Kconfig"
 source "board/siemens/common/Kconfig"
