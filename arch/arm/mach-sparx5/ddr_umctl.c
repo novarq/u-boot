@@ -443,7 +443,7 @@ static void do_data_training(const struct ddr_config *cfg)
 	/* By default asynchronous read mode is set : PGCR3.RDMODE = 2'b00 */
 	w = mmio_read_32(DDR_PHY_PGCR3);
 	if (FIELD_GET(PGCR3_RDMODE, w) != 0) {
-		DEBUG("pgcr3: %08x\n", w);
+		NOTICE("pgcr3: %08x\n", w);
 		PANIC("RDMODE not zero");
 	}
 

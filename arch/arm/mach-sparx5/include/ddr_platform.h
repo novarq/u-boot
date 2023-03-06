@@ -24,11 +24,11 @@
 #endif
 
 #if !defined(VERBOSE)
-# define VERBOSE(x...)
+# define VERBOSE(...)
 #endif
 
 #if !defined(NOTICE)
-# define NOTICE(x...)
+# define NOTICE(...) printf(__VA_ARGS__)
 #endif
 
 #if !defined(TRACE)

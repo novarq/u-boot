@@ -25,8 +25,10 @@ enum {
 	BOARD_TYPE_PCB135,
 };
 
+#if defined(CONFIG_DESIGNWARE_SPI)
 static bool spi_cs_init;
 static u32 spi2mask;
+#endif
 
 static struct mm_region fa_mem_map[] = {
 	{
@@ -339,30 +341,6 @@ int board_late_init(void)
 #undef PCB_SUFFIX
 }
 
-#define EARLY_CACHE
-#if defined(EARLY_CACHE)
-#define EARLY_PGTABLE_SIZE 0x5000
-static inline void early_mmu_setup(void)
-{
-	unsigned int el = current_el();
-
-	gd->arch.tlb_addr = PHYS_SRAM_ADDR;
-	gd->arch.tlb_fillptr = gd->arch.tlb_addr;
-	gd->arch.tlb_size = EARLY_PGTABLE_SIZE;
-
-	/* Create early page tables */
-	setup_pgtables();
-
-	/* point TTBR to the new table */
-	set_ttbr_tcr_mair(el, gd->arch.tlb_addr,
-			  get_tcr(NULL, NULL) &
-			  ~(TCR_ORGN_MASK | TCR_IRGN_MASK),
-			  MEMORY_ATTRIBUTES);
-
-	set_sctlr(get_sctlr() | CR_M);
-}
-#endif
-
 void *board_fdt_blob_setup(int *err)
 {
 	*err = 0;
@@ -381,72 +359,13 @@ void *board_fdt_blob_setup(int *err)
 	return fdt;
 }
 
-int arch_cpu_init(void)
-{
-	/*
-	 * This function is called before U-Boot relocates itself to speed up
-	 * on system running. It is not necessary to run if performance is not
-	 * critical. Skip if MMU is already enabled by SPL or other means.
-	 */
-	printch('C');
-#if defined(EARLY_CACHE)
-	if (get_sctlr() & CR_M)
-		return 0;
-
-	printch('I');
-	__asm_invalidate_dcache_all();
-	__asm_invalidate_tlb_all();
-	early_mmu_setup();
-	printch('i');
-	set_sctlr(get_sctlr() | CR_C);
-	printch('c');
-#endif
-
-	return 0;
-}
-
-/*
- * The final tables are identical to early tables, but the tables are
- * in DDR memory instead of device SRAM (which is supposed to be used
- * by the PoE controller).
- */
-static inline void final_mmu_setup(void)
-{
-	u64 tlb_addr_save;
-	unsigned int el = current_el();
-
-	/* Use allocated (board_f.c) memory for TLB */
-	tlb_addr_save = gd->arch.tlb_addr;
-
-	/* Reset the fill ptr */
-	gd->arch.tlb_fillptr = gd->arch.tlb_addr;
-
-	/* Create normal system page tables */
-	setup_pgtables();
-
-	/* Create emergency page tables */
-	gd->arch.tlb_emerg = gd->arch.tlb_addr = gd->arch.tlb_fillptr;
-	setup_pgtables();
-
-	/* Restore normal TLB addr */
-	gd->arch.tlb_addr = tlb_addr_save;
-
-	/* Disable cache and MMU */
-	dcache_disable();	/* TLBs are invalidated */
-	invalidate_icache_all();
-
-	/* point TTBR to the new table */
-	set_ttbr_tcr_mair(el, gd->arch.tlb_addr, get_tcr(NULL, NULL),
-			  MEMORY_ATTRIBUTES);
-
-	set_sctlr(get_sctlr() | CR_M);
-}
-
 void enable_caches(void)
 {
-	final_mmu_setup();
-	__asm_invalidate_tlb_all();
+#if !defined(CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK)
 	icache_enable();
+#else
+	/* Enable D-cache. I-cache is already enabled in boot0 */
+#endif
 	dcache_enable();
 }
 

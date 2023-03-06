@@ -350,6 +350,11 @@ dtb-$(CONFIG_ARCH_MVEBU) +=			\
 endif
 
 dtb-$(CONFIG_ARCH_SYNQUACER) += synquacer-sc2a11-developerbox.dtb
+dtb-$(CONFIG_TARGET_SPARX5) += \
+        sparx5_pcb134_nand.dtb \
+        sparx5_pcb134_emmc.dtb \
+        sparx5_pcb135_nand.dtb \
+        sparx5_pcb135_emmc.dtb
 dtb-$(CONFIG_ARCH_UNIPHIER_LD11) += \
 	uniphier-ld11-global.dtb \
 	uniphier-ld11-ref.dtb
