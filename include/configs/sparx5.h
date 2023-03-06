@@ -28,8 +28,6 @@
 #define GICR_BASE                       UL(0x600340000)
 #endif
 
-#define COUNTER_FREQUENCY		(0xFA00000)	/* 250MHz */
-
 #define PHYS_SRAM_ADDR			UL(0x630000000)
 #define PHYS_SRAM_SIZE			SZ_64K
 #define PHYS_SRAM_MEM_ADDR		UL(0x632000000)
