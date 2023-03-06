@@ -1899,6 +1899,8 @@ config TARGET_SPARX5
 	select ARMV8_SET_SMPEN
 	select ARMV8_MULTIENTRY
 	select ARMV8_SPIN_TABLE
+	select ARCH_MISC_INIT
+	select GICV3
 	select DM
 	select DM_GPIO
 	select DM_SERIAL

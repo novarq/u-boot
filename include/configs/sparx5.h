@@ -8,15 +8,6 @@
 
 #include <linux/sizes.h>
 
-#if defined(CONFIG_ARMV8_MULTIENTRY)
-#define CONFIG_ARCH_MISC_INIT	/* Enabling 2nd core */
-#endif
-
-//#define CONFIG_ARMV8_SWITCH_TO_EL1
-
-/* 32-bit register interface */
-#define CONFIG_SYS_NS16550_MEM32
-
 #define PHYS_SPI			UL(0x000000000)
 #define PHYS_NAND			UL(0x400000000)
 #define PHYS_DEVICE_REG			UL(0x600000000)
@@ -32,17 +23,6 @@
 #define CFG_SYS_INIT_RAM_SIZE		PHYS_SRAM_SIZE
 #define CFG_SYS_SDRAM_BASE		VIRT_SDRAM_1
 
-/* Size of malloc() pool */
-//#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + SZ_8M)
-
-#if defined(CONFIG_CMD_MEMTEST)
-/* Allow first 128M for memory test */
-//#define CONFIG_SYS_MEMTEST_START	VIRT_SDRAM_1
-//#define CONFIG_SYS_MEMTEST_END		(VIRT_SDRAM_1 + PHYS_SDRAM_1_SIZE - SZ_16M)
-//#define CONFIG_SYS_MEMTEST_SCRATCH	(CONFIG_SYS_MEMTEST_END + 64)
-#endif
-
-#define CONFIG_GICV3
 #ifdef CONFIG_GICV3
 #define GICD_BASE                       UL(0x600300000)
 #define GICR_BASE                       UL(0x600340000)
@@ -50,14 +30,10 @@
 
 #define COUNTER_FREQUENCY		(0xFA00000)	/* 250MHz */
 
-#define CONFIG_BOARD_TYPES
-
 #define PHYS_SRAM_ADDR			UL(0x630000000)
 #define PHYS_SRAM_SIZE			SZ_64K
 #define PHYS_SRAM_MEM_ADDR		UL(0x632000000)
 #define PHYS_SRAM_MEM_SIZE		SZ_32K
-
-#define CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK
 
 #if defined(CONFIG_MTDIDS_DEFAULT) && defined(CONFIG_MTDPARTS_DEFAULT)
 #define SPARX5_DEFAULT_MTD_ENV			      \
@@ -68,12 +44,6 @@
 #endif
 
 #define ENV_PCB		"pcb:sc,pcb_rev:do,"
-
-/* Env (pcb) is setup by board code */
-#define CONFIG_BOARD_LATE_INIT
-#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-
-#define CONFIG_OF_BOARD_SETUP   /* Need to inject misc board stuff */
 
 #if defined(CONFIG_MMC_SDHCI)
 #define SPARX5_MTD_SUPPORT_ENV						\
@@ -98,7 +68,7 @@
 	"name=Boot0,size=1024MiB,type=linux;"				\
 	"name=Boot1,size=1024MiB,type=linux;"				\
 	"name=Data,size=1536MiB,type=linux\0"
-#define CONFIG_ENV_CALLBACK_LIST_STATIC ENV_PCB "filesize:filesize,mmc_cur:mmc_cur,"
+#define CFG_ENV_CALLBACK_LIST_STATIC ENV_PCB "filesize:filesize,mmc_cur:mmc_cur,"
 #define BOOTCMD_DEFAULT "mmc_boot"
 #else
 #define SPARX5_MTD_SUPPORT_ENV						\
@@ -117,11 +87,11 @@
 	"nand_tryboot=run nandload"					\
 	";setenv mtdroot ubi.mtd=Boot${nand_cur},2048 ${nand_mtdroot}"	\
 	";run ramboot\0"
-#define CONFIG_ENV_CALLBACK_LIST_STATIC ENV_PCB "nand_cur:nand_cur,"
+#define CFG_ENV_CALLBACK_LIST_STATIC ENV_PCB "nand_cur:nand_cur,"
 #define BOOTCMD_DEFAULT "nand_boot"
 #endif
 
-#define CONFIG_EXTRA_ENV_SETTINGS					\
+#define CFG_EXTRA_ENV_SETTINGS					\
 	SPARX5_DEFAULT_MTD_ENV						\
 	SPARX5_MTD_SUPPORT_ENV						\
 	"bootargs_extra=loglevel=4\0"					\
@@ -148,14 +118,13 @@
 	"ramboot=run setup; bootm #${pcb}\0"				\
 	"bootdelay=3\0"
 
-#define CONFIG_ENV_FLAGS_LIST_STATIC "pcb:sc,pcb_rev:do"
+#define CFG_ENV_FLAGS_LIST_STATIC "pcb:sc,pcb_rev:do"
 
+#if defined(CONFIG_MMC_SDHCI)
 /* Need writeb */
 #define CONFIG_MMC_SDHCI_IO_ACCESSORS
+#endif
 
-#define CONFIG_OF_BOARD_SETUP	/* Need to inject misc board stuff */
-
-#define CONFIG_SYS_BOOTMAPSZ	SZ_64M	/* Initial map for Linux*/
-//#define CONFIG_SYS_BOOTM_LEN	SZ_64M	/* Increase max gunzip size */
+#define CFG_SYS_BOOTMAPSZ	SZ_64M	/* Initial map for Linux*/
 
 #endif	/* __INCL_INCLUDE_CONFIGS_SPARX5__ */
