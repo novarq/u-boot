@@ -78,9 +78,6 @@ static inline bool ddr4_only_register(uintptr_t reg)
 		DDR_UMCTL2_DRAMTMG12,
 		DDR_UMCTL2_DRAMTMG9,
 		DDR_PHY_SCHCR1,
-		DDR_PHY_MR4,
-		DDR_PHY_MR5,
-		DDR_PHY_MR6,
 		DDR_PHY_PTR2,
 	};
 	int i;
@@ -149,6 +146,32 @@ static void set_static_ctl(void)
 	 * DDR initialization */
 	mmio_setbits_32(DDR_UMCTL2_DFIUPD0,
 			DFIUPD0_DIS_AUTO_CTRLUPD_SRX | DFIUPD0_DIS_AUTO_CTRLUPD);
+}
+
+/*
+ * This mirrors the PHY mrX fields from the controller initX registers
+ * to avoid having both in the configuration strcuture.
+ */
+static void set_mrx_phy(const struct ddr_config *cfg)
+{
+	bool ddr4 = !!(cfg->main.mstr & MSTR_DDR4);
+
+	mmio_write_32(DDR_PHY_MR0,
+		      FIELD_GET(INIT3_MR, cfg->main.init3));
+	mmio_write_32(DDR_PHY_MR1,
+		      FIELD_GET(INIT3_EMR, cfg->main.init3));
+	mmio_write_32(DDR_PHY_MR2,
+		      FIELD_GET(INIT4_EMR2, cfg->main.init4));
+	mmio_write_32(DDR_PHY_MR3,
+		      FIELD_GET(INIT4_EMR3, cfg->main.init4));
+	if (ddr4) {
+		mmio_write_32(DDR_PHY_MR4,
+			      FIELD_GET(INIT6_MR4, cfg->main.init6));
+		mmio_write_32(DDR_PHY_MR5,
+			      FIELD_GET(INIT6_MR5, cfg->main.init6));
+		mmio_write_32(DDR_PHY_MR6,
+			      FIELD_GET(INIT7_MR6, cfg->main.init7));
+	}
 }
 
 static void set_static_phy(const struct ddr_config *cfg)
@@ -236,7 +259,7 @@ static void axi_enable_ports(bool enable)
 
 static void ecc_enable_scrubbing(void)
 {
-	TRACE("Enable ECC scrubbing\n");
+	VERBOSE("Enable ECC scrubbing\n");
 
 	/* 1.  Disable AXI port. port_en = 0 */
 	axi_enable_ports(false);
@@ -277,7 +300,7 @@ static void ecc_enable_scrubbing(void)
 	/* 12. Enable AXI port */
 	axi_enable_ports(true);
 
-	TRACE("Enabled ECC scrubbing\n");
+	VERBOSE("Enabled ECC scrubbing\n");
 }
 
 static void phy_fifo_reset(void)
@@ -322,7 +345,7 @@ static int ddr_phy_init(uint32_t mode, int usec_timout)
 
 	mode |= PIR_INIT;
 
-	TRACE("ddr_phy_init:start\n");
+	VERBOSE("ddr_phy_init:start\n");
 
 	/* Now, kick PHY */
 	mmio_write_32(DDR_PHY_PIR, mode);
@@ -334,7 +357,7 @@ static int ddr_phy_init(uint32_t mode, int usec_timout)
 
 	rc = wait_phy_idone(usec_timout);
 
-	TRACE("ddr_phy_init:exit = %d\n", rc);
+	VERBOSE("ddr_phy_init:exit = %d\n", rc);
 
 	return rc;
 }
@@ -361,7 +384,7 @@ static void sw_done_start(void)
 
 static void sw_done_ack(void)
 {
-	TRACE("sw_done_ack:enter\n");
+	VERBOSE("sw_done_ack:enter\n");
 
 	/* Signal we're done */
 	mmio_write_32(DDR_UMCTL2_SWCTL, SWCTL_SW_DONE);
@@ -370,7 +393,7 @@ static void sw_done_ack(void)
 	if (wait_reg_set(DDR_UMCTL2_SWSTAT, SWSTAT_SW_DONE_ACK, 50))
 		PANIC("Timout SWSTAT.sw_done_ack set");
 
-	TRACE("sw_done_ack:exit\n");
+	VERBOSE("sw_done_ack:exit\n");
 }
 
 static void ddr_disable_refresh(void)
@@ -437,7 +460,7 @@ static int do_data_training(const struct ddr_config *cfg)
 	uint32_t w, m;
 	int rc;
 
-	TRACE("do_data_training:enter\n");
+	VERBOSE("do_data_training:enter\n");
 
 	/* Disable Auto refresh and power down before training */
 	ddr_disable_refresh();
@@ -539,14 +562,14 @@ static int do_data_training(const struct ddr_config *cfg)
 	/* Settle */
 	ddr_usleep(1);
 
-	TRACE("do_data_training:exit\n");
+	VERBOSE("do_data_training:exit\n");
 
 	return 0;
 }
 
 int ddr_init(const struct ddr_config *cfg)
 {
-	TRACE("ddr_init:start\n");
+	VERBOSE("ddr_init:start\n");
 
 	VERBOSE("name = %s\n", cfg->info.name);
 	VERBOSE("speed = %d kHz\n", cfg->info.speed);
@@ -569,6 +592,9 @@ int ddr_init(const struct ddr_config *cfg)
 	/* Set PHY registers */
 	set_regs(cfg, &cfg->phy, ddr_phy_reg, ARRAY_SIZE(ddr_phy_reg));
 	set_regs(cfg, &cfg->phy_timing, ddr_phy_timing_reg, ARRAY_SIZE(ddr_phy_timing_reg));
+
+	/* Mirror PHY MRx registers */
+	set_mrx_phy(cfg);
 
 	/* Static PHY settings */
 	set_static_phy(cfg);
@@ -600,7 +626,7 @@ int ddr_init(const struct ddr_config *cfg)
 	if (cfg->main.ecccfg0 & ECCCFG0_ECC_MODE)
 		ecc_enable_scrubbing();
 
-	TRACE("ddr_init:done\n");
+	VERBOSE("ddr_init:done\n");
 
 	return 0;
 }

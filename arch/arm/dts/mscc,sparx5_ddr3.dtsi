@@ -5,7 +5,7 @@
  */
 
 &ddr {
-	microchip,mem-name = "pcb135_ddr3 2023-03-16-08:27:45 2c56e1fb74b3";
+	microchip,mem-name = "pcb135_ddr3 2023-03-16-11:04:55 41f4dd1ec3ff";
 	microchip,mem-speed = <1667>;
 	microchip,mem-size = <0x80000000>;
 	microchip,mem-bus-width = <32>;
@@ -80,13 +80,6 @@
 		0x02000101	/* dtpr3 */
 		0x00f30817	/* dtpr4 */
 		0x002d0d08	/* dtpr5 */
-		0x00001114	/* mr0 */
-		0x00000004	/* mr1 */
-		0x00000020	/* mr2 */
-		0x00000000	/* mr3 */
-		0x00000000	/* mr4 */
-		0x00000400	/* mr5 */
-		0x00000400	/* mr6 */
 		0x3421a0d0	/* ptr0 */
 		0x51618ea6	/* ptr1 */
 		0x00083def	/* ptr2 */
