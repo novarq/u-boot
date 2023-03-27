@@ -26,11 +26,6 @@
 
 #include <dt-bindings/mscc/sparx5_data.h>
 
-#if defined(CONFIG_DDR_SPARX5_PCB134)
-/* Gross hack to enable Cupper SFPs */
-#include "mscc_sparx5_regs_devcpu_gcb.h"
-#endif
-
 #define SPARX5_MIIM_BUS_COUNT 4
 
 static struct mscc_miim_dev miim[SPARX5_MIIM_BUS_COUNT];
@@ -232,6 +227,12 @@ enum {
 	SERDES_ARG_MAX,
 };
 
+enum {
+	SPARX5_PCB_UNKNOWN,
+	SPARX5_PCB_134 = 134,
+	SPARX5_PCB_135 = 135,
+};
+
 struct sparx5_phy_port {
 	bool active;
 	struct mii_dev *bus;
@@ -244,6 +245,7 @@ struct sparx5_private {
 	void __iomem *regs[REGS_NAMES_COUNT];
 	struct mii_dev *bus[SPARX5_MIIM_BUS_COUNT];
 	struct sparx5_phy_port ports[MAX_PORT];
+	u32 pcb;
 };
 
 extern void sparx5_serdes_port_init(int port,
@@ -382,18 +384,18 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 		}
 	}
 
-#if defined(CONFIG_DDR_SPARX5_PCB134)
-	/* SGPIO HACK */
-	writel(0x00060051, MSCC_DEVCPU_GCB_SIO_CFG(2));
-	writel(0x00001410, MSCC_DEVCPU_GCB_SIO_CLOCK(2));
-	writel(0xfffff000, MSCC_DEVCPU_GCB_SIO_PORT_ENA(2));
-	writel(0x00000fff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 0));
-	writel(0xffffffff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 1));
-	writel(0x00000fff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 2));
-	writel(0xffffffff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 3));
-	for (i = 12; i < 32; i++)
-		writel(0x00049000, MSCC_DEVCPU_GCB_SIO_PORT_CFG(2, i));
-#endif
+	if (priv->pcb == SPARX5_PCB_134) {
+		/* SGPIO HACK */
+		writel(0x00060051, MSCC_DEVCPU_GCB_SIO_CFG(2));
+		writel(0x00001410, MSCC_DEVCPU_GCB_SIO_CLOCK(2));
+		writel(0xfffff000, MSCC_DEVCPU_GCB_SIO_PORT_ENA(2));
+		writel(0x00000fff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 0));
+		writel(0xffffffff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 1));
+		writel(0x00000fff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 2));
+		writel(0xffffffff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 3));
+		for (i = 12; i < 32; i++)
+			writel(0x00049000, MSCC_DEVCPU_GCB_SIO_PORT_CFG(2, i));
+	}
 
 	/* BCAST/CPU pgid */
 	writel(0xffffffff, ANA_AC_PGID_CFG(priv->regs[ANA_AC], PGID_BROADCAST));
@@ -852,6 +854,9 @@ static int sparx5_probe(struct udevice *dev)
 
 	debug("%s\n", __FUNCTION__);
 
+	if (dev_read_u32(dev, "mscc,pcb", &priv->pcb))
+		priv->pcb = SPARX5_PCB_UNKNOWN;
+
 	/* Get registers and map them to the private structure */
 	for (i = 0; i < ARRAY_SIZE(regs_names); i++) {
 		priv->regs[i] = dev_remap_addr_name(dev, regs_names[i]);
@@ -920,12 +925,13 @@ static int sparx5_probe(struct udevice *dev)
 		add_port_entry(priv, i, phy_addr, bus, serdes_args);
 	}
 
-#if defined(CONFIG_DDR_SPARX5_PCB135)
-	// Take pcb135 out of reset
-	writel(0x83000, MSCC_DEVCPU_GCB_GPIO_OE);
-	writel(0x80000, MSCC_DEVCPU_GCB_GPIO_OUT_CLR);
-	writel(0x80000, MSCC_DEVCPU_GCB_GPIO_OUT_SET);
-#endif
+	if (priv->pcb == SPARX5_PCB_135) {
+		// Take pcb135 out of reset
+		writel(0x83000, MSCC_DEVCPU_GCB_GPIO_OE);
+		writel(0x80000, MSCC_DEVCPU_GCB_GPIO_OUT_CLR);
+		writel(0x80000, MSCC_DEVCPU_GCB_GPIO_OUT_SET);
+	}
+
 	for (i = 0; i < MAX_PORT; i++) {
 		struct phy_device *phy;
 
@@ -945,13 +951,13 @@ static int sparx5_probe(struct udevice *dev)
 			if (i == NPI_PORT) {
 				board_phy_config(phy);
 			} else {
-#if defined(CONFIG_DDR_SPARX5_PCB135)
-				/* configure Indy phy (into QSGMII mode). Elise phy not supported */
-				phy_write(phy, 0, 0x16, 5);
-				phy_write(phy, 0, 0x17, 0x13);
-				phy_write(phy, 0, 0x16, 0x4005);
-				phy_write(phy, 0, 0x17, 0x20);
-#endif
+				if (priv->pcb == SPARX5_PCB_135) {
+					/* configure Indy phy (into QSGMII mode). Elise phy not supported */
+					phy_write(phy, 0, 0x16, 5);
+					phy_write(phy, 0, 0x17, 0x13);
+					phy_write(phy, 0, 0x16, 0x4005);
+					phy_write(phy, 0, 0x17, 0x20);
+				}
 			}
 		} else
 			debug("%s: No driver\n", __FUNCTION__);
