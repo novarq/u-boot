@@ -802,23 +802,6 @@ static struct mii_dev *sparx5_get_mdiobus(struct sparx5_private *priv,
 	return NULL;
 }
 
-static void sparx5_add_port_entry(struct sparx5_private *priv, size_t index,
-				   size_t phy_addr, struct mii_dev *bus,
-				   u32 *serdes_args)
-{
-	debug("%s: Add port %zd bus %s addr %zd serdes %s serdes# %d\n", __FUNCTION__, index,
-	      bus ? bus->name : "(none)", phy_addr,
-	      serdes_args[SERDES_ARG_SERDES] == FA_SERDES_TYPE_6G ? "6g" : "10g",
-	      serdes_args[SERDES_ARG_SER_IDX]);
-
-	priv->ports[index].active = true;
-	priv->ports[index].phy_addr = phy_addr;
-	priv->ports[index].bus = bus;
-	priv->ports[index].mac_type = serdes_args[SERDES_ARG_MAC_TYPE];
-	priv->ports[index].serdes_type = serdes_args[SERDES_ARG_SERDES];
-	priv->ports[index].serdes_index = serdes_args[SERDES_ARG_SER_IDX];
-}
-
 static int sparx5_probe(struct udevice *dev)
 {
 	u32 serdes_args[SERDES_ARG_MAX];
@@ -927,14 +910,31 @@ static int sparx5_probe(struct udevice *dev)
 			phy_addr = -1;
 		}
 
+		priv->ports[i].active = true;
+		priv->ports[i].phy_addr = phy_addr;
+		priv->ports[i].bus = bus;
+
 		/* Get serdes info */
 		ret = ofnode_read_u32_array(node, "phys", serdes_args, SERDES_ARG_MAX);
 		if (ret) {
-			printf("%s: Port %d no 'phys' properties?\n", __FUNCTION__, i);
-			return -ENOMEM;
+			ret = ofnode_read_u32_array(node, "phys", serdes_args, 1);
+			if (ret) {
+				printf("%s: Port %d no 'phys' properties?\n",
+				       __func__, i);
+				return -EINVAL;
+			} else {
+				priv->ports[i].mac_type = serdes_args[SERDES_ARG_MAC_TYPE];
+			}
+		} else {
+			priv->ports[i].mac_type = serdes_args[SERDES_ARG_MAC_TYPE];
+			priv->ports[i].serdes_type = serdes_args[SERDES_ARG_SERDES];
+			priv->ports[i].serdes_index = serdes_args[SERDES_ARG_SER_IDX];
 		}
 
-		sparx5_add_port_entry(priv, i, phy_addr, bus, serdes_args);
+		debug("%s: Add port %d bus %s addr %zd serdes %s serdes# %d\n",
+		      __func__, i, bus ? bus->name : "(none)", phy_addr,
+		      priv->ports[i].serdes_type == FA_SERDES_TYPE_6G ? "6g" : "10g",
+		      priv->ports[i].serdes_index);
 	}
 
 	if (priv->pcb == SPARX5_PCB_135) {
