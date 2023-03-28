@@ -39,8 +39,6 @@ static struct sparx5_private *dev_priv;
 #define PGID_BROADCAST(priv)		(priv->data->num_ports + 2)
 #define PGID_HOST(priv)			(priv->data->num_ports + 3)
 
-#define IFH_LEN			9 /* 36 bytes */
-
 static const char * const sparx5_reg_names[] = {
 	"port0", "port1", "port2", "port3", "port4", "port5", "port6",
 	"port7", "port8", "port9", "port10", "port11", "port12", "port13",
@@ -185,34 +183,12 @@ static const unsigned long sparx5_regs_qs[] = {
 };
 
 #define IFH_FMT_NONE  0		/* No IFH */
-#define IFH_FMT_IFH   1		/* Only IFH */
-#define IFH_FMT_SHORT 2		/* MAC encap, IFH */
 
 #define CONFIG_IFH_FMT     IFH_FMT_NONE
 #define CONFIG_VLAN_ENABLE
 //#define CONFIG_CPU_PGID_ENA
 //#define CONFIG_CPU_BPDU_ENA
 #define CONFIG_CPU_MACENTRY_ENA
-
-#define IFH_ID_SPARX5			0x0b
-static u8 ifh_sparx5[] =
-{
-#if (CONFIG_IFH_FMT == IFH_FMT_SHORT)
-	/* MAC (long) encapsulation (MAC_ENCAP_LEN) */
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xfe, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0x88, 0x80, 0x00, IFH_ID_SPARX5,
-#endif
-	/* IFH start */
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	/* v-rsv1 = 1 */
-	0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	/* f-update-fcs 1 f-src-port 66 m-pipeline-act 2 */
-	0x00, 0x00, 0x00, 0x08, 0x00, 0x10, 0x88, 0x00,
-	0x00, 0x00, 0x00, 0x00,
-	/* Ethernet hdr hereafter */
-};
 
 enum {
 	SERDES_ARG_MAC_TYPE,
@@ -234,6 +210,7 @@ struct mscc_match_data {
 	u8 num_bus;
 	u8 cpu_port;
 	u8 npi_port;
+	u8 ifh_len;
 };
 
 static struct mscc_match_data mscc_sparx5_data = {
@@ -243,6 +220,7 @@ static struct mscc_match_data mscc_sparx5_data = {
 	.num_bus = 4,
 	.cpu_port = 65,
 	.npi_port = 64,
+	.ifh_len = 9,
 };
 
 struct sparx5_phy_port {
@@ -776,24 +754,11 @@ static void sparx5_stop(struct udevice *dev)
 static int sparx5_send(struct udevice *dev, void *packet, int length)
 {
 	struct sparx5_private *priv = dev_get_priv(dev);
-	u32 *ifh;
-	size_t ifh_len;
 
 	//debug("%s: %d bytes\n", __FUNCTION__, length);
 	hexdump(packet, length);
-
-	if (CONFIG_IFH_FMT > IFH_FMT_NONE) {
-		ifh = (u32*) ifh_sparx5;
-		ifh_len = sizeof(ifh_sparx5)/sizeof(u32);
-		debug("%s: Encap %zd bytes\n", __FUNCTION__, sizeof(ifh_sparx5));
-		hexdump(ifh_sparx5, sizeof(ifh_sparx5));
-	} else {
-		ifh = NULL;
-		ifh_len = 0;
-	}
-
 	return mscc_send(priv->regs[QS], sparx5_regs_qs,
-			 ifh, ifh_len, packet, length);
+			 NULL, 0, packet, length);
 }
 
 static int sparx5_recv(struct udevice *dev, int flags, uchar **packetp)
@@ -804,8 +769,8 @@ static int sparx5_recv(struct udevice *dev, int flags, uchar **packetp)
 
 	//debug("%s\n", __FUNCTION__);
 
-	byte_cnt = mscc_recv(priv->regs[QS], sparx5_regs_qs, rxbuf, IFH_LEN,
-			     false);
+	byte_cnt = mscc_recv(priv->regs[QS], sparx5_regs_qs, rxbuf,
+			     priv->data->ifh_len, false);
 
 	*packetp = net_rx_packets[0];
 
