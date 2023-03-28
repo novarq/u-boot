@@ -227,8 +227,10 @@ struct sparx5_phy_port {
 	bool active;
 	struct mii_dev *bus;
 	u8 phy_addr;
-	u32 serdes_args[SERDES_ARG_MAX];
 	struct phy_device *phy;
+	u32 mac_type;
+	u32 serdes_type;
+	u32 serdes_index;
 };
 
 struct sparx5_private {
@@ -334,7 +336,7 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 			QSYS_CAL_CTRL_CAL_MODE(8));
 
 	/* Configure NPI port */
-	if (priv->ports[priv->data->npi_port].serdes_args[SERDES_ARG_MAC_TYPE] == IF_SGMII)
+	if (priv->ports[priv->data->npi_port].mac_type == IF_SGMII)
 		setbits_le32(PORT_CONF_DEV5G_MODES(priv->regs[PORT_CONF]),
 			     PORT_CONF_DEV5G_MODES_P64_SGMII);
 	else
@@ -344,7 +346,6 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 	/* Enable all 10G ports */
 	writel(0xFFF, PORT_CONF_DEV10G_MODES(priv->regs[PORT_CONF]));
 
-
 	for (i = 0; i < priv->data->num_ports; i++) {
 		struct sparx5_phy_port *p = &priv->ports[i];
 		/* Enable 10G shadow interfaces */
@@ -353,22 +354,22 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 				     DSM_DEV_TX_STOP_WM_CFG_DEV10G_SHADOW_ENA);
 
 		/* Enable shadow 5G interfaces */
-		if (p->active && (p->serdes_args[SERDES_ARG_MAC_TYPE] == IF_QSGMII) && (i < 12))
+		if (p->active && (p->mac_type == IF_QSGMII) && (i < 12))
 			setbits_le32(PORT_CONF_DEV5G_MODES(priv->regs[PORT_CONF]), BIT(i));
 
 		/* MUXing for QSGMII */
-		if (p->active && (p->serdes_args[SERDES_ARG_MAC_TYPE] == IF_QSGMII)) {
+		if (p->active && (p->mac_type == IF_QSGMII)) {
 			setbits_le32(PORT_CONF_QSGMII_ENA(priv->regs[PORT_CONF]), BIT((i - i % 4) / 4));
 		}
 
-		if (p->active && (p->serdes_args[SERDES_ARG_MAC_TYPE] == IF_QSGMII)) {
+		if (p->active && (p->mac_type == IF_QSGMII)) {
 			if ((i / 4 % 2) == 0) {
 				/* Affects d0-d3,d8-d11..d40-d43 */
 				writel(0x332, PORT_CONF_USGMII_CFG(priv->regs[PORT_CONF], i/8));
 			}
 		}
 
-		if (p->active && (p->serdes_args[SERDES_ARG_MAC_TYPE] == IF_QSGMII)) {
+		if (p->active && (p->mac_type == IF_QSGMII)) {
 			u32 p = (i / 4) * 4;
 			for (u32 cnt = 0; cnt < 4; cnt++) {
 				/* Must take the PCS out of reset for all 4 QSGMII instances */
@@ -477,14 +478,13 @@ static void sparx5_cpu_capture_setup(struct sparx5_private *priv)
 static void sparx5_port_init(struct sparx5_private *priv, int port, u32 mac_if)
 {
 	void __iomem *regs = priv->regs[port + __REG_MAX];
-	u32 *serdes_args = priv->ports[port].serdes_args;
 
 	debug("%s: port %d\n", __FUNCTION__, port);
 
 	sparx5_serdes_port_init(port,
-				 serdes_args[SERDES_ARG_MAC_TYPE],
-				 serdes_args[SERDES_ARG_SERDES],
-				 serdes_args[SERDES_ARG_SER_IDX]);
+				 priv->ports[port].mac_type,
+				 priv->ports[port].serdes_type,
+				 priv->ports[port].serdes_index);
 	/* Enable PCS */
 	writel(DEV1G_PCS1G_CFG_PCS_ENA, DEV1G_PCS1G_CFG(regs));
 
@@ -673,7 +673,7 @@ static int sparx5_initialize(struct sparx5_private *priv)
 
 	for (i = 0; i < priv->data->num_ports; i++)
 		if (priv->ports[i].active)
-			sparx5_port_init(priv, i, priv->ports[i].serdes_args[SERDES_ARG_MAC_TYPE]);
+			sparx5_port_init(priv, i, priv->ports[i].mac_type);
 
 	sparx5_cpu_capture_setup(priv);
 
@@ -789,8 +789,8 @@ static int sparx5_recv(struct udevice *dev, int flags, uchar **packetp)
 	return byte_cnt;
 }
 
-static struct mii_dev *get_mdiobus(struct sparx5_private *priv,
-				   phys_addr_t base, unsigned long size)
+static struct mii_dev *sparx5_get_mdiobus(struct sparx5_private *priv,
+					   phys_addr_t base, unsigned long size)
 {
 	int i = 0;
 
@@ -802,9 +802,9 @@ static struct mii_dev *get_mdiobus(struct sparx5_private *priv,
 	return NULL;
 }
 
-static void add_port_entry(struct sparx5_private *priv, size_t index,
-			   size_t phy_addr, struct mii_dev *bus,
-			   u32 *serdes_args)
+static void sparx5_add_port_entry(struct sparx5_private *priv, size_t index,
+				   size_t phy_addr, struct mii_dev *bus,
+				   u32 *serdes_args)
 {
 	debug("%s: Add port %zd bus %s addr %zd serdes %s serdes# %d\n", __FUNCTION__, index,
 	      bus ? bus->name : "(none)", phy_addr,
@@ -814,12 +814,14 @@ static void add_port_entry(struct sparx5_private *priv, size_t index,
 	priv->ports[index].active = true;
 	priv->ports[index].phy_addr = phy_addr;
 	priv->ports[index].bus = bus;
-	memcpy(priv->ports[index].serdes_args, serdes_args,
-	       sizeof(priv->ports[index].serdes_args));
+	priv->ports[index].mac_type = serdes_args[SERDES_ARG_MAC_TYPE];
+	priv->ports[index].serdes_type = serdes_args[SERDES_ARG_SERDES];
+	priv->ports[index].serdes_index = serdes_args[SERDES_ARG_SER_IDX];
 }
 
 static int sparx5_probe(struct udevice *dev)
 {
+	u32 serdes_args[SERDES_ARG_MAX];
 	struct sparx5_private *priv;
 	int miim_count = 0;
 	int i;
@@ -831,7 +833,6 @@ static int sparx5_probe(struct udevice *dev)
 	size_t phy_addr;
 	struct mii_dev *bus;
 	struct ofnode_phandle_args phandle;
-	u32 serdes_args[SERDES_ARG_MAX];
 
 	debug("%s\n", __FUNCTION__);
 
@@ -915,7 +916,7 @@ static int sparx5_probe(struct udevice *dev)
 			addr_size = resource_size(&res);
 
 			/* If the bus is new then create a new bus */
-			if (!get_mdiobus(priv, addr_base, addr_size))
+			if (!sparx5_get_mdiobus(priv, addr_base, addr_size))
 				priv->bus[miim_count] =
 					mscc_mdiobus_init(priv->miim, &miim_count, addr_base,
 							  addr_size);
@@ -928,13 +929,12 @@ static int sparx5_probe(struct udevice *dev)
 
 		/* Get serdes info */
 		ret = ofnode_read_u32_array(node, "phys", serdes_args, SERDES_ARG_MAX);
-
 		if (ret) {
 			printf("%s: Port %d no 'phys' properties?\n", __FUNCTION__, i);
 			return -ENOMEM;
 		}
 
-		add_port_entry(priv, i, phy_addr, bus, serdes_args);
+		sparx5_add_port_entry(priv, i, phy_addr, bus, serdes_args);
 	}
 
 	if (priv->pcb == SPARX5_PCB_135) {
