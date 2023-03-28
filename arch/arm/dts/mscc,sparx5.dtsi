@@ -234,7 +234,23 @@
 
 		switch: switch@0 {
 			compatible = "mscc,vsc7558-switch";
-			reg = <6 0x10004000 0x4000>,   // DEV2G5_0
+			reg = <6 0x11900000 0x100000>, // ANA_AC
+			      <6 0x11400000 0x100000>, // ANA_CL
+			      <6 0x11800000 0x100000>, // ANA_L2
+			      <6 0x11480000 0x100000>, // ANA_L3
+			      <6 0x10600000 0x10000>,  // ASM
+			      <6 0x11060000 0x10000>,  // LRN
+			      <6 0x110b0000 0x10000>,  // QFWD
+			      <6 0x11030000 0x20000>,  // DEVCPU_QS
+			      <6 0x110a0000 0x10000>,  // QSYS
+			      <6 0x11600000 0x80000>,  // REW
+			      <6 0x11a00000 0x80000>,  // VOP
+			      <6 0x10504000 0x80000>,  // DSM
+			      <6 0x112c0000 0x80000>,  // EACL
+			      <6 0x11080000 0x80000>,  // VCAP_SUPER
+			      <6 0x11580000 0x80000>,  // HSCH
+			      <6 0x10130000 0x10000>,  // PORT_CONF
+			      <6 0x10004000 0x4000>,   // DEV2G5_0
 			      <6 0x10010000 0x4000>,   // DEV2G5_1
 			      <6 0x1001c000 0x4000>,   // DEV2G5_2
 			      <6 0x10404000 0x4000>,   // DEV2G5_3
@@ -298,43 +314,26 @@
 			      <6 0x104d4000 0x4000>,   // DEV2G5_61
 			      <6 0x104e4000 0x4000>,   // DEV2G5_62
 			      <6 0x104f4000 0x4000>,   // DEV2G5_63
-			      <6 0x10124000 0x4000>,   // DEV2G5_64
-			      <6 0x11900000 0x100000>, // ANA_AC
-			      <6 0x11400000 0x100000>, // ANA_CL
-			      <6 0x11800000 0x100000>, // ANA_L2
-			      <6 0x11480000 0x100000>, // ANA_L3
-			      <6 0x10600000 0x10000>,  // ASM
-			      <6 0x11060000 0x10000>,  // LRN
-			      <6 0x110b0000 0x10000>,  // QFWD
-			      <6 0x11030000 0x20000>,  // DEVCPU_QS
-			      <6 0x110a0000 0x10000>,  // QSYS
-			      <6 0x11600000 0x80000>,  // REW
-			      <6 0x11a00000 0x80000>,  // VOP
-			      <6 0x10504000 0x80000>,  // DSM
-			      <6 0x112c0000 0x80000>,  // EACL
-			      <6 0x11080000 0x80000>,  // VCAP_SUPER
-			      <6 0x11580000 0x80000>,  // HSCH
-			      <6 0x10130000 0x10000>;  // PORT_CONF
-			reg-names = "port0", "port1", "port2", "port3",
+			      <6 0x10124000 0x4000>;   // DEV2G5_64
+			reg-names =
+			      "ana_ac", "ana_cl", "ana_l2", "ana_l3",
+			      "asm", "lrn", "qfwd", "qs",
+			      "qsys", "rew", "vop", "dsm",
+			      "eacl", "vcap_super", "hsch", "port_conf",
+			      "port0", "port1", "port2", "port3",
 			      "port4", "port5", "port6", "port7", "port8",
 			      "port9", "port10", "port11", "port12", "port13",
 			      "port14", "port15", "port16", "port17", "port18",
 			      "port19", "port20", "port21", "port22", "port23",
 			      "port24", "port25", "port26", "port27", "port28",
 			      "port29", "port30", "port31", "port32", "port33",
-			      "port34",	"port35", "port36", "port37", "port38",
+			      "port34", "port35", "port36", "port37", "port38",
 			      "port39", "port40", "port41", "port42", "port43",
 			      "port44", "port45", "port46", "port47", "port48",
 			      "port49", "port50", "port51", "port52", "port53",
 			      "port54", "port55", "port56", "port57", "port58",
 			      "port59", "port60", "port61", "port62", "port63",
-			      "port64",
-			      "ana_ac", "ana_cl",
-			      "ana_l2", "ana_l3", "asm", "lrn", "qfwd",
-			      "qs", "qsys", "rew",
-			      "vop", "dsm", "eacl", "vcap_super",
-			      "hsch", "port_conf";
-
+			      "port64";
 			ethernet-ports {
 				#address-cells = <1>;
 				#size-cells = <0>;

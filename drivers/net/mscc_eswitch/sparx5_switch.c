@@ -29,8 +29,6 @@
 
 static struct sparx5_private *dev_priv;
 
-#define MAX_PORT		65
-
 #define MAC_VID			1 /* Also = FID 1 */
 #define ETH_ALEN		6
 
@@ -40,6 +38,10 @@ static struct sparx5_private *dev_priv;
 #define PGID_HOST(priv)			(priv->data->num_ports + 3)
 
 static const char * const sparx5_reg_names[] = {
+	"ana_ac", "ana_cl", "ana_l2", "ana_l3",
+	"asm", "lrn", "qfwd", "qs",
+	"qsys", "rew", "vop", "dsm", "eacl",
+	"vcap_super", "hsch", "port_conf",
 	"port0", "port1", "port2", "port3", "port4", "port5", "port6",
 	"port7", "port8", "port9", "port10", "port11", "port12", "port13",
 	"port14", "port15", "port16", "port17", "port18", "port19", "port20",
@@ -50,13 +52,10 @@ static const char * const sparx5_reg_names[] = {
 	"port49", "port50", "port51", "port52", "port53", "port54", "port55",
 	"port56", "port57", "port58", "port59", "port60", "port61", "port62",
 	"port63", "port64",
-	"ana_ac", "ana_cl", "ana_l2", "ana_l3", "asm", "lrn",
-	"qfwd", "qs", "qsys", "rew",
-	"vop", "dsm", "eacl", "vcap_super", "hsch", "port_conf",
 };
 
 enum sparx5_ctrl_regs {
-	ANA_AC = MAX_PORT,
+	ANA_AC,
 	ANA_CL,
 	ANA_L2,
 	ANA_L3,
@@ -72,6 +71,7 @@ enum sparx5_ctrl_regs {
 	VCAP_SUPER,
 	HSCH,
 	PORT_CONF,
+	__REG_MAX,
 };
 
 #define SWITCHREG(base, roff)             (base + (4*(roff)))
@@ -282,10 +282,10 @@ static bool has_link(struct sparx5_private *priv, int port)
 {
 	u32 mask, val;
 	if (priv->ports[port].bus) {
-		val = readl(DEV1G_PCS1G_LINK_STATUS(priv->regs[port]));
+		val = readl(DEV1G_PCS1G_LINK_STATUS(priv->regs[port + __REG_MAX]));
 		mask = DEV1G_PCS1G_LINK_STATUS_LINK_UP;
 	} else {
-		val = readl(DEV1G_PCS1G_ANEG_STATUS(priv->regs[port]));
+		val = readl(DEV1G_PCS1G_ANEG_STATUS(priv->regs[port + __REG_MAX]));
 		mask = DEV1G_PCS1G_ANEG_STATUS_ANEG_COMPLETE;
 	}
 
@@ -476,7 +476,7 @@ static void sparx5_cpu_capture_setup(struct sparx5_private *priv)
 
 static void sparx5_port_init(struct sparx5_private *priv, int port, u32 mac_if)
 {
-	void __iomem *regs = priv->regs[port];
+	void __iomem *regs = priv->regs[port + __REG_MAX];
 	u32 *serdes_args = priv->ports[port].serdes_args;
 
 	debug("%s: port %d\n", __FUNCTION__, port);
