@@ -30,15 +30,15 @@
 static struct sparx5_private *dev_priv;
 
 #define MAX_PORT		65
-#define NPI_PORT		(MAX_PORT-1)
-#define CPU_PORT		MAX_PORT
+
 #define MAC_VID			1 /* Also = FID 1 */
-#define PGID_L2_UC		(MAX_PORT + 0)
-#define PGID_L2_MC		(MAX_PORT + 1)
-#define PGID_BASE         	(MAX_PORT + 10)
-#define PGID_BROADCAST		(PGID_BASE + 0)
-#define PGID_HOST		(PGID_BASE + 1)
 #define ETH_ALEN		6
+
+#define PGID_L2_UC(priv)		(priv->data->num_ports + 0)
+#define PGID_L2_MC(priv)		(priv->data->num_ports + 1)
+#define PGID_BROADCAST(priv)		(priv->data->num_ports + 2)
+#define PGID_HOST(priv)			(priv->data->num_ports + 3)
+
 #define IFH_LEN			9 /* 36 bytes */
 
 static const char * const sparx5_reg_names[] = {
@@ -176,7 +176,6 @@ enum sparx5_ctrl_regs {
 #define ANA_L3_VLAN_CTRL(base)            SWITCHREG(base, 0x1e211)
 #define ANA_L3_VLAN_CFG(base, gi)         SWITCHREG_IX(base,0x0,gi,16,0,2)
 
-
 static const unsigned long sparx5_regs_qs[] = {
 	[MSCC_QS_XTR_RD] = 0x8,
 	[MSCC_QS_XTR_FLUSH] = 0x18,
@@ -233,6 +232,8 @@ struct mscc_match_data {
 	u8 num_regs;
 	u8 num_ports;
 	u8 num_bus;
+	u8 cpu_port;
+	u8 npi_port;
 };
 
 static struct mscc_match_data mscc_sparx5_data = {
@@ -240,6 +241,8 @@ static struct mscc_match_data mscc_sparx5_data = {
 	.num_regs = 81,
 	.num_ports = 65,
 	.num_bus = 4,
+	.cpu_port = 65,
+	.npi_port = 64,
 };
 
 struct sparx5_phy_port {
@@ -353,7 +356,7 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 			QSYS_CAL_CTRL_CAL_MODE(8));
 
 	/* Configure NPI port */
-	if (priv->ports[NPI_PORT].serdes_args[SERDES_ARG_MAC_TYPE] == IF_SGMII)
+	if (priv->ports[priv->data->npi_port].serdes_args[SERDES_ARG_MAC_TYPE] == IF_SGMII)
 		setbits_le32(PORT_CONF_DEV5G_MODES(priv->regs[PORT_CONF]),
 			     PORT_CONF_DEV5G_MODES_P64_SGMII);
 	else
@@ -364,7 +367,7 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 	writel(0xFFF, PORT_CONF_DEV10G_MODES(priv->regs[PORT_CONF]));
 
 
-	for (i = 0; i < MAX_PORT; i++) {
+	for (i = 0; i < priv->data->num_ports; i++) {
 		struct sparx5_phy_port *p = &priv->ports[i];
 		/* Enable 10G shadow interfaces */
 		if (p->active)
@@ -411,19 +414,19 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 	}
 
 	/* BCAST/CPU pgid */
-	writel(0xffffffff, ANA_AC_PGID_CFG(priv->regs[ANA_AC], PGID_BROADCAST));
-	writel(0xffffffff, ANA_AC_PGID_CFG1(priv->regs[ANA_AC], PGID_BROADCAST));
-	writel(0x00000001, ANA_AC_PGID_CFG2(priv->regs[ANA_AC], PGID_BROADCAST));
-	writel(0x00000000, ANA_AC_PGID_CFG(priv->regs[ANA_AC], PGID_HOST));
-	writel(0x00000000, ANA_AC_PGID_CFG1(priv->regs[ANA_AC], PGID_HOST));
-	writel(0x00000000, ANA_AC_PGID_CFG2(priv->regs[ANA_AC], PGID_HOST));
+	writel(0xffffffff, ANA_AC_PGID_CFG(priv->regs[ANA_AC], PGID_BROADCAST(priv)));
+	writel(0xffffffff, ANA_AC_PGID_CFG1(priv->regs[ANA_AC], PGID_BROADCAST(priv)));
+	writel(0x00000001, ANA_AC_PGID_CFG2(priv->regs[ANA_AC], PGID_BROADCAST(priv)));
+	writel(0x00000000, ANA_AC_PGID_CFG(priv->regs[ANA_AC], PGID_HOST(priv)));
+	writel(0x00000000, ANA_AC_PGID_CFG1(priv->regs[ANA_AC], PGID_HOST(priv)));
+	writel(0x00000000, ANA_AC_PGID_CFG2(priv->regs[ANA_AC], PGID_HOST(priv)));
 
 	/*
 	 * Disable port-to-port by switching
 	 * Put front ports in "port isolation modes" - i.e. they can't send
 	 * to other ports - via the PGID sorce masks.
 	 */
-	for (i = 0; i < MAX_PORT; i++) {
+	for (i = 0; i < priv->data->num_ports; i++) {
 		writel(0, ANA_AC_SRC_CFG0(priv->regs[ANA_AC], i));
 		writel(0, ANA_AC_SRC_CFG1(priv->regs[ANA_AC], i));
 		writel(0, ANA_AC_SRC_CFG2(priv->regs[ANA_AC], i));
@@ -431,19 +434,19 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 
 #if defined(CONFIG_CPU_PGID_ENA)
 	/* CPU copy UC+MC:FLOOD */
-	writel(1, ANA_AC_PGID_MISC_CFG(priv->regs[ANA_AC], PGID_L2_MC));
-	writel(1, ANA_AC_PGID_MISC_CFG(priv->regs[ANA_AC], PGID_L2_UC));
+	writel(1, ANA_AC_PGID_MISC_CFG(priv->regs[ANA_AC], PGID_L2_MC(priv)));
+	writel(1, ANA_AC_PGID_MISC_CFG(priv->regs[ANA_AC], PGID_L2_UC(priv)));
 #endif
 
 	/* HACK: Convenience XQS XQS:SYSTEM:STAT_CFG */
-	writel(CPU_PORT << 5, 0x6110c1dcc);
+	writel(priv->data->cpu_port << 5, 0x6110c1dcc);
 
 #if defined(CONFIG_VLAN_ENABLE)
 	/* VLAN aware CPU port */
 	writel(ANA_CL_VLAN_CTRL_VLAN_AWARE_ENA |
 	       ANA_CL_VLAN_CTRL_VLAN_POP_CNT(1) |
 	       MAC_VID,
-	       ANA_CL_VLAN_CTRL(priv->regs[ANA_CL], CPU_PORT));
+	       ANA_CL_VLAN_CTRL(priv->regs[ANA_CL], priv->data->cpu_port));
 	/* XXX: Map PVID = FID, DISABLE LEARNING  */
 	writel((MAC_VID << 8) | BIT(3),
 	       ANA_L3_VLAN_CFG(priv->regs[ANA_L3], MAC_VID));
@@ -466,7 +469,7 @@ static void sparx5_cpu_capture_setup(struct sparx5_private *priv)
 	writel(ASM_PORT_CFG_PAD_ENA |
 	       ASM_PORT_CFG_NO_PREAMBLE_ENA |
 	       ASM_PORT_CFG_INJ_FORMAT_CFG(CONFIG_IFH_FMT),
-	       ASM_PORT_CFG(priv->regs[ASM], CPU_PORT));
+	       ASM_PORT_CFG(priv->regs[ASM], priv->data->cpu_port));
 
 	/* Set Manual injection via DEVCPU_QS registers for CPU queue 0 */
 	writel(0x5, QS_INJ_GRP_CFG(priv->regs[QS], 0));
@@ -475,11 +478,11 @@ static void sparx5_cpu_capture_setup(struct sparx5_private *priv)
 	writel(0x7, QS_XTR_GRP_CFG(priv->regs[QS], 0));
 
 	/* Enable CPU port for any frame transfer */
-	setbits_le32(QFWD_SWITCH_PORT_MODE(priv->regs[QFWD], CPU_PORT),
+	setbits_le32(QFWD_SWITCH_PORT_MODE(priv->regs[QFWD], priv->data->cpu_port),
 		     QFWD_SWITCH_PORT_MODE_PORT_ENA);
 
 	/* Recalc injected frame FCS */
-	setbits_le32(ANA_CL_FILTER_CTRL(priv->regs[ANA_CL], CPU_PORT),
+	setbits_le32(ANA_CL_FILTER_CTRL(priv->regs[ANA_CL], priv->data->cpu_port),
 		     ANA_CL_FILTER_CTRL_FORCE_FCS_UPDATE_ENA);
 
 #if 0
@@ -609,7 +612,7 @@ static int sparx5_mac_table_add(struct sparx5_private *priv,
 
 	mac_table_write_entry(priv, mac, MAC_VID);
 
-	writel(LRN_MAC_ACCESS_CFG2_MAC_ENTRY_ADDR(pgid - MAX_PORT) |
+	writel(LRN_MAC_ACCESS_CFG2_MAC_ENTRY_ADDR(pgid - priv->data->num_ports) |
 	       LRN_MAC_ACCESS_CFG2_MAC_ENTRY_TYPE(0x3) |
 	       LRN_MAC_ACCESS_CFG2_MAC_ENTRY_CPU_COPY |
 	       LRN_MAC_ACCESS_CFG2_MAC_ENTRY_CPU_QU(0) |
@@ -690,7 +693,7 @@ static int sparx5_initialize(struct sparx5_private *priv)
 
 	sparx5_switch_config(priv);
 
-	for (i = 0; i < MAX_PORT; i++)
+	for (i = 0; i < priv->data->num_ports; i++)
 		if (priv->ports[i].active)
 			sparx5_port_init(priv, i, priv->ports[i].serdes_args[SERDES_ARG_MAC_TYPE]);
 
@@ -713,15 +716,15 @@ static int sparx5_start(struct udevice *dev)
 		return ret;
 
 	/* Set MAC address tables entries for CPU redirection */
-	ret = sparx5_mac_table_add(priv, mac, PGID_BROADCAST);
+	ret = sparx5_mac_table_add(priv, mac, PGID_BROADCAST(priv));
 	if (ret)
 		return ret;
 
-	ret = sparx5_mac_table_add(priv, pdata->enetaddr, PGID_HOST);
+	ret = sparx5_mac_table_add(priv, pdata->enetaddr, PGID_HOST(priv));
 	if (ret)
 		return ret;
 
-	for (i = 0; i < MAX_PORT; i++)
+	for (i = 0; i < priv->data->num_ports; i++)
 		if (priv->ports[i].active) {
 			struct phy_device *phy = priv->ports[i].phy;
 
@@ -735,7 +738,7 @@ static int sparx5_start(struct udevice *dev)
 					continue; /* try all phys */
 				} else {
 					phy_ok = 1;
-					if (i == NPI_PORT)
+					if (i == priv->data->npi_port)
 						printf("NPI Port: ");
 					else
 						printf("Port %3d: ", i);
@@ -755,7 +758,7 @@ static void sparx5_stop(struct udevice *dev)
 
 	debug("%s\n", __FUNCTION__);
 
-	for (i = 0; i < MAX_PORT; i++) {
+	for (i = 0; i < priv->data->num_ports; i++) {
 		struct phy_device *phy = priv->ports[i].phy;
 
 		if (phy)
@@ -976,7 +979,7 @@ static int sparx5_probe(struct udevice *dev)
 		writel(0x80000, MSCC_DEVCPU_GCB_GPIO_OUT_SET);
 	}
 
-	for (i = 0; i < MAX_PORT; i++) {
+	for (i = 0; i < priv->data->num_ports; i++) {
 		struct phy_device *phy;
 
 		if (!priv->ports[i].bus)
@@ -992,7 +995,7 @@ static int sparx5_probe(struct udevice *dev)
 			debug("%s: PHY %s %s\n", __FUNCTION__, phy->bus->name, phy->drv->name);
 			priv->ports[i].phy = phy;
 
-			if (i == NPI_PORT) {
+			if (i == priv->data->npi_port) {
 				board_phy_config(phy);
 			} else {
 				if (priv->pcb == SPARX5_PCB_135) {
@@ -1071,7 +1074,7 @@ static int do_switch(struct cmd_tbl *cmdtp, int flag, int argc,
 			       mac[0], mac[1], mac[2],
 			       mac[3], mac[4], mac[5], vid, addr, cfg0, cfg1, cfg2);
 		}
-		for (i = 0; i < MAX_PORT; i++)
+		for (i = 0; i < priv->data->num_ports; i++)
 			if (priv->ports[i].active) {
 				u32 mask, val;
 				if (priv->ports[i].bus) {
