@@ -660,6 +660,11 @@ config MMC_SDHCI_ROCKCHIP
 	help
 	  Support for Arasan SDHCI host controller on Rockchip ARM SoCs platform
 
+config MMC_SDHCI_SPARX5
+	bool "Sparx5 SDHCI controller support"
+	depends on MMC_SDHCI
+	depends on TARGET_SPARX5
+
 config MMC_SDHCI_S5P
 	bool "SDHCI support on Samsung S5P SoC"
 	depends on MMC_SDHCI

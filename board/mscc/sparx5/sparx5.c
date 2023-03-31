@@ -308,6 +308,16 @@ int board_fit_config_name_match(const char *name)
 }
 #endif
 
+#if defined(CONFIG_DTB_RESELECT)
+int embedded_dtb_select(void)
+{
+	do_board_detect();
+	fdtdec_setup();
+
+	return 0;
+}
+#endif
+
 int board_init(void)
 {
 	debug("Board init\n");
@@ -339,24 +349,6 @@ int board_late_init(void)
 	}
 	return 0;
 #undef PCB_SUFFIX
-}
-
-void *board_fdt_blob_setup(int *err)
-{
-	*err = 0;
-
-	/* By default, FDT is at end of image */
-	void *fdt = (void *)&_end;
-
-	if (fdt_magic(fdt) != FDT_MAGIC) {
-		*err = -ENXIO;
-		return NULL;
-	}
-
-	/* Detect board - this happens *VERY* early in boot process */
-	do_board_detect();
-
-	return fdt;
 }
 
 void enable_caches(void)
