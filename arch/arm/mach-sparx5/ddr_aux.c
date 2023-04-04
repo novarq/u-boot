@@ -6,13 +6,13 @@
 #include <common.h>
 #include <asm/io.h>
 
-#include <mscc_sparx5_regs_common.h>
+#include <sparx5_regs.h>
 
-#define DW_APB_LOAD_VAL		(MSCC_TO_TIMERS + (0*4))
-#define DW_APB_CURR_VAL		(MSCC_TO_TIMERS + (1*4))
-#define DW_APB_CTRL		(MSCC_TO_TIMERS + (2*4))
-#define DW_APB_EOI		(MSCC_TO_TIMERS + (3*4))
-#define DW_APB_INTSTAT		(MSCC_TO_TIMERS + (4*4))
+#define DW_APB_LOAD_VAL		(SPARX5_TIMERS_BASE + (0*4))
+#define DW_APB_CURR_VAL		(SPARX5_TIMERS_BASE + (1*4))
+#define DW_APB_CTRL		(SPARX5_TIMERS_BASE + (2*4))
+#define DW_APB_EOI		(SPARX5_TIMERS_BASE + (3*4))
+#define DW_APB_INTSTAT		(SPARX5_TIMERS_BASE + (4*4))
 
 #define CLOC_SPEED	(250 * 1000000) /* 250Mhz */
 #define NS_PER_TICK	(1000000000/CLOC_SPEED) /* ns = (10 ** 9), ns/tick = 4 */
