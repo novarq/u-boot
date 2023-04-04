@@ -16,6 +16,10 @@
 
 #include <sparx5_regs.h>
 
+#if !defined(CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK)
+#error "Sorry, we need this"
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 enum {
@@ -156,6 +160,54 @@ int print_cpuinfo(void)
 {
 	printf("CPU:   ARM A53\n");
 	return 0;
+}
+
+static inline void early_mmu_setup(void)
+{
+	unsigned int el = current_el();
+
+	gd->arch.tlb_addr = PHYS_SRAM_MEM_ADDR;
+	gd->arch.tlb_fillptr = gd->arch.tlb_addr;
+	gd->arch.tlb_size = PHYS_SRAM_MEM_SIZE;
+
+	/* Create early page tables */
+	setup_pgtables();
+
+	/* point TTBR to the new table */
+	set_ttbr_tcr_mair(el, gd->arch.tlb_addr,
+			  get_tcr(NULL, NULL) &
+			  ~(TCR_ORGN_MASK | TCR_IRGN_MASK),
+			  MEMORY_ATTRIBUTES);
+
+	set_sctlr(get_sctlr() | CR_M);
+}
+
+int arch_cpu_init(void)
+{
+	/*
+	 * This function is called before U-Boot relocates itself to speed up
+	 * on system running. It is not necessary to run if performance is not
+	 * critical. Skip if MMU is already enabled by SPL or other means.
+	 */
+	printch('C');
+	if (get_sctlr() & CR_M)
+		return 0;
+
+	printch('I');
+	invalidate_dcache_all();
+	__asm_invalidate_tlb_all();
+	early_mmu_setup();
+	printch('i');
+	set_sctlr(get_sctlr() | CR_C);
+	printch('c');
+
+	return 0;
+}
+
+void enable_caches(void)
+{
+	/* Enable D-cache. I-cache is already enabled in boot0 */
+	dcache_enable();
 }
 
 #if defined(CONFIG_ARCH_MISC_INIT)
@@ -367,17 +419,6 @@ int board_late_init(void)
 #undef PCB_SUFFIX
 }
 
-void enable_caches(void)
-{
-#if !defined(CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK)
-	icache_enable();
-#else
-	/* Enable D-cache. I-cache is already enabled in boot0 */
-#endif
-	dcache_enable();
-}
-
-#if defined(CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK)
 void boot0(void)
 {
 	uintptr_t syscnt = SPARX5_CPU_SYSCNT_BASE;
@@ -405,7 +446,6 @@ void boot0(void)
 	/* Release GIC reset */
 	clrbits_le32(CPU_RESET(SPARX5_CPU_BASE), CPU_RESET_GIC_RST(1));
 }
-#endif
 
 // Helper for MMC update (512-byte blocks)
 static int on_filesize(const char *name, const char *value, enum env_op op,

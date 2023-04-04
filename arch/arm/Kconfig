@@ -1894,7 +1894,7 @@ config TARGET_TEN64
 	  on NXP LS1088A.
 
 config TARGET_SPARX5
-	bool "Support MSCC Sparx5 platform"
+	bool "Support Microchip Sparx5 platform"
 	select ARM64
 	select ARMV8_SET_SMPEN
 	select ARMV8_MULTIENTRY
@@ -1908,8 +1908,8 @@ config TARGET_SPARX5
 	select SYS_NS16550
 	imply CMD_DM
 	  help
-	  Support for MSCC Sparx5 reference board platform. It support
-	  2Gb DDR, and 2 A53 and a M3 core.
+	  Support for Microchip Sparx5 reference board platform. It supports
+	  2Gb DDR, and 2 A53 cores.
 
 config ARCH_UNIPHIER
 	bool "Socionext UniPhier SoCs"
