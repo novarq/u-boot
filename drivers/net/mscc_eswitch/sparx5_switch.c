@@ -37,11 +37,13 @@ static struct sparx5_private *dev_priv;
 #define PGID_BROADCAST(priv)		(priv->data->num_ports + 2)
 #define PGID_HOST(priv)			(priv->data->num_ports + 3)
 
+#define CONFIG_IFH_FMT_NONE	0
+
 static const char * const sparx5_reg_names[] = {
 	"ana_ac", "ana_cl", "ana_l2", "ana_l3",
 	"asm", "lrn", "qfwd", "qs",
 	"qsys", "rew", "vop", "dsm", "eacl",
-	"vcap_super", "hsch", "port_conf",
+	"vcap_super", "hsch", "port_conf", "xqs", "hsio", "gcb", "cpu",
 	"port0", "port1", "port2", "port3", "port4", "port5", "port6",
 	"port7", "port8", "port9", "port10", "port11", "port12", "port13",
 	"port14", "port15", "port16", "port17", "port18", "port19", "port20",
@@ -71,6 +73,10 @@ enum sparx5_ctrl_regs {
 	VCAP_SUPER,
 	HSCH,
 	PORT_CONF,
+	XQS,
+	HSIO,
+	GCB,
+	CPU,
 	__REG_MAX,
 };
 
@@ -78,14 +84,14 @@ enum sparx5_ctrl_regs {
 #define SWITCHREG_IX(t, o, g, gw, r, ro)  SWITCHREG(t, (o) + ((g) * (gw)) + (ro) + (r))
 
 /* RAM init regs */
-#define ANA_AC_RAM_INIT(base)        SWITCHREG(base, 0x33371)
-#define QSYS_RAM_INIT(base)          SWITCHREG(base, 0x24a)
-#define ASM_RAM_INIT(base)           SWITCHREG(base, 0x2204)
-#define REW_RAM_INIT(base)           SWITCHREG(base, 0x171d2)
-#define DSM_RAM_INIT(base)           SWITCHREG(base, 0x0)
-#define EACL_RAM_INIT(base)          SWITCHREG(base, 0x73f4)
-#define VCAP_SUPER_RAM_INIT(base)    SWITCHREG(base, 0x118)
-#define VOP_RAM_INIT(base)           SWITCHREG(base, 0x110a2)
+#define ANA_AC_RAM_INIT(base)             SWITCHREG(base, 0x33371)
+#define QSYS_RAM_INIT(base)               SWITCHREG(base, 0x24a)
+#define ASM_RAM_INIT(base)                SWITCHREG(base, 0x2204)
+#define REW_RAM_INIT(base)                SWITCHREG(base, 0x171d2)
+#define DSM_RAM_INIT(base)                SWITCHREG(base, 0x0)
+#define EACL_RAM_INIT(base)               SWITCHREG(base, 0x73f4)
+#define VCAP_SUPER_RAM_INIT(base)         SWITCHREG(base, 0x118)
+#define VOP_RAM_INIT(base)                SWITCHREG(base, 0x110a2)
 
 /* Switch registers */
 #define ANA_AC_STAT_PORT_STAT_RESET(base) SWITCHREG(base, 0x33f9c)
@@ -93,16 +99,16 @@ enum sparx5_ctrl_regs {
 #define ANA_AC_PGID_CFG1(base, gi)        SWITCHREG_IX(base,0x30000,gi,4,0,1)
 #define ANA_AC_PGID_CFG2(base, gi)        SWITCHREG_IX(base,0x30000,gi,4,0,2)
 #define ANA_AC_PGID_MISC_CFG(base, gi)    SWITCHREG_IX(base,0x30000,gi,4,0,3)
-#define ANA_AC_SRC_CFG0(base, gi)	  SWITCHREG_IX(base,0x33e00,gi,4,0,0)
-#define ANA_AC_SRC_CFG1(base, gi)	  SWITCHREG_IX(base,0x33e00,gi,4,0,1)
-#define ANA_AC_SRC_CFG2(base, gi)	  SWITCHREG_IX(base,0x33e00,gi,4,0,2)
+#define ANA_AC_SRC_CFG0(base, gi)         SWITCHREG_IX(base,0x33e00,gi,4,0,0)
+#define ANA_AC_SRC_CFG1(base, gi)         SWITCHREG_IX(base,0x33e00,gi,4,0,1)
+#define ANA_AC_SRC_CFG2(base, gi)         SWITCHREG_IX(base,0x33e00,gi,4,0,2)
 #define ASM_STAT_CFG(base)                SWITCHREG(base, 0x2080)
 #define QSYS_CAL_AUTO(base, ri)           SWITCHREG(base, 0x240 + (ri))
 #define QSYS_CAL_CTRL(base)               SWITCHREG(base, 0x249)
 #define  QSYS_CAL_CTRL_CAL_MODE(x)               (GENMASK(14,11) & ((x) << 11))
 #define  QSYS_CAL_CTRL_CAL_MODE_MASK             GENMASK(14,11)
 #define ASM_PORT_CFG(base, ri)            SWITCHREG(base, 0x2107 + (ri))
-#define  ASM_PORT_CFG_PAD_ENA		         BIT(6)
+#define  ASM_PORT_CFG_PAD_ENA                    BIT(6)
 #define  ASM_PORT_CFG_NO_PREAMBLE_ENA            BIT(9)
 #define  ASM_PORT_CFG_INJ_FORMAT_CFG(x)          (GENMASK(3,2) & ((x) << 2))
 #define QS_INJ_GRP_CFG(base, ri)          SWITCHREG(base, 0x9 + (ri))
@@ -123,13 +129,13 @@ enum sparx5_ctrl_regs {
 #define  DEV1G_PCS1G_MODE_CFG_SGMII_MODE_ENA     BIT(0)
 #define DEV1G_PCS1G_ANEG_CFG(target)      SWITCHREG(target, 0x19)
 #define  DEV1G_PCS1G_ANEG_CFG_ADV_ABILITY(x)     (GENMASK(31,16) & ((x) << 16))
-#define  DEV1G_PCS1G_ANEG_CFG_SW_RESOLVE_ENA        BIT(8)
+#define  DEV1G_PCS1G_ANEG_CFG_SW_RESOLVE_ENA     BIT(8)
 #define  DEV1G_PCS1G_ANEG_CFG_ANEG_RESTART_ONE_SHOT BIT(1)
-#define  DEV1G_PCS1G_ANEG_CFG_ANEG_ENA              BIT(0)
+#define  DEV1G_PCS1G_ANEG_CFG_ANEG_ENA           BIT(0)
 #define DEV1G_PCS1G_ANEG_STATUS(target)   SWITCHREG(target, 0x1e)
-#define  DEV1G_PCS1G_ANEG_STATUS_ANEG_COMPLETE	    BIT(0)
-#define DEV1G_PCS1G_LINK_STATUS(target)	  SWITCHREG(target,0x20)
-#define  DEV1G_PCS1G_LINK_STATUS_LINK_UP	    BIT(4)
+#define  DEV1G_PCS1G_ANEG_STATUS_ANEG_COMPLETE   BIT(0)
+#define DEV1G_PCS1G_LINK_STATUS(target)   SWITCHREG(target,0x20)
+#define  DEV1G_PCS1G_LINK_STATUS_LINK_UP         BIT(4)
 #define DEV1G_MAC_IFG_CFG(target)         SWITCHREG(target, 0x13)
 #define  DEV1G_MAC_IFG_CFG_TX_IFG(x)             (GENMASK(12,8) & ((x) << 8))
 #define  DEV1G_MAC_IFG_CFG_RX_IFG2(x)            (GENMASK(7,4) & ((x) << 4))
@@ -146,28 +152,29 @@ enum sparx5_ctrl_regs {
 #define ANA_CL_FILTER_CTRL(target, gi)      SWITCHREG_IX(target,0x8000,gi,128,0,1)
 #define  ANA_CL_FILTER_CTRL_FORCE_FCS_UPDATE_ENA BIT(0)
 #define LRN_COMMON_ACCESS_CTRL(base)      SWITCHREG(base, 0x0)
-#define  LRN_COMMON_ACCESS_CTRL_CPU_ACCESS_CMD(x)  (GENMASK(4,1) & ((x) << 1))
+#define  LRN_COMMON_ACCESS_CTRL_CPU_ACCESS_CMD(x)         (GENMASK(4,1) & ((x) << 1))
 #define  LRN_COMMON_ACCESS_CTRL_MAC_TABLE_ACCESS_SHOT     BIT(0)
 #define LRN_MAC_ACCESS_CFG0(base)         SWITCHREG(base, 0x1)
 #define LRN_MAC_ACCESS_CFG1(base)         SWITCHREG(base, 0x2)
 #define LRN_MAC_ACCESS_CFG2(base)         SWITCHREG(base, 0x3)
-#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_ADDR(x)     (GENMASK(11,0) & ((x) << 0))
-#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_ADDR_MASK   GENMASK(11,0)
-#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_TYPE(x)     (GENMASK(14,12) & ((x) << 12))
-#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_VLD         BIT(15)
-#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_LOCKED      BIT(16)
-#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_CPU_COPY    BIT(23)
-#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_CPU_QU(x)   (GENMASK(26,24) & ((x) << 24))
+#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_ADDR(x)   (GENMASK(11,0) & ((x) << 0))
+#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_ADDR_MASK GENMASK(11,0)
+#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_TYPE(x)   (GENMASK(14,12) & ((x) << 12))
+#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_VLD       BIT(15)
+#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_LOCKED    BIT(16)
+#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_CPU_COPY  BIT(23)
+#define  LRN_MAC_ACCESS_CFG2_MAC_ENTRY_CPU_QU(x) (GENMASK(26,24) & ((x) << 24))
 #define LRN_SCAN_NEXT_CFG(base)           SWITCHREG(base, 0x5)
-#define  LRN_SCAN_NEXT_CFG_UNTIL_FOUND_ENA         BIT(10)
-#define  LRN_SCAN_NEXT_CFG_IGNORE_LOCKED_ENA	   BIT(7)
+#define  LRN_SCAN_NEXT_CFG_UNTIL_FOUND_ENA       BIT(10)
+#define  LRN_SCAN_NEXT_CFG_IGNORE_LOCKED_ENA     BIT(7)
 #define HSCH_RESET_CFG(base)              SWITCHREG(base, 0x9e92)
 #define PORT_CONF_DEV5G_MODES(base)       SWITCHREG(base, 0x0)
-#define  PORT_CONF_DEV5G_MODES_P64_SGMII           BIT(12)
-#define  PORT_CONF_DEV5G_MODES_P0_11		   GENMASK(11,0)
+#define  PORT_CONF_DEV5G_MODES_P64_SGMII         BIT(12)
+#define  PORT_CONF_DEV5G_MODES_P0_11             GENMASK(11,0)
 #define PORT_CONF_DEV10G_MODES(base)      SWITCHREG(base, 0x1)
-#define PORT_CONF_QSGMII_ENA(base)      SWITCHREG(base, 0x3)
-#define PORT_CONF_USGMII_CFG(base, gi)        SWITCHREG_IX(base,0x12,gi,2,0,0)
+#define PORT_CONF_QSGMII_ENA(base)        SWITCHREG(base, 0x3)
+#define PORT_CONF_USGMII_CFG(base, gi)    SWITCHREG_IX(base,0x12,gi,2,0,0)
+#define XQS_STAT_CFG(base)                SWITCHREG(base, 0x673)
 
 #define DSM_DEV_TX_STOP_WM_CFG(base, ri)  SWITCHREG(base, 0x159 + (ri))
 #define  DSM_DEV_TX_STOP_WM_CFG_DEV10G_SHADOW_ENA  BIT(8)
@@ -182,14 +189,6 @@ static const unsigned long sparx5_regs_qs[] = {
 	[MSCC_QS_INJ_CTRL] = 0x34,
 };
 
-#define IFH_FMT_NONE  0		/* No IFH */
-
-#define CONFIG_IFH_FMT     IFH_FMT_NONE
-#define CONFIG_VLAN_ENABLE
-//#define CONFIG_CPU_PGID_ENA
-//#define CONFIG_CPU_BPDU_ENA
-#define CONFIG_CPU_MACENTRY_ENA
-
 enum {
 	SERDES_ARG_MAC_TYPE,
 	SERDES_ARG_SERDES,
@@ -203,6 +202,10 @@ enum {
 	SPARX5_PCB_135 = 135,
 };
 
+enum {
+	SPARX5_TARGET,
+};
+
 struct mscc_match_data {
 	const char * const *reg_names;
 	u8 num_regs;
@@ -211,16 +214,20 @@ struct mscc_match_data {
 	u8 cpu_port;
 	u8 npi_port;
 	u8 ifh_len;
+	u8 num_cal_auto;
+	u8 target;
 };
 
 static struct mscc_match_data mscc_sparx5_data = {
 	.reg_names = sparx5_reg_names,
-	.num_regs = 81,
+	.num_regs = 85,
 	.num_ports = 65,
 	.num_bus = 4,
 	.cpu_port = 65,
 	.npi_port = 64,
 	.ifh_len = 9,
+	.num_cal_auto = 7,
+	.target = SPARX5_TARGET,
 };
 
 struct sparx5_phy_port {
@@ -253,21 +260,6 @@ extern void sparx5_serdes_cmu_init(void);
 
 extern void sparx5_serdes_init(void);
 
-static void hexdump(u8 *buf, int len)
-{
-#if 0
-	int i;
-
-	len = min(len, 60);
-	for (i = 0; i < len; i++) {
-		if ((i % 16) == 0)
-			printf("%s%04x: ", i ? "\n" : "", i);
-		printf("%02x ", buf[i]);
-	}
-	printf("\n");
-#endif
-}
-
 static int ram_init(void __iomem *addr)
 {
 	writel(BIT(1), addr);
@@ -280,24 +272,8 @@ static int ram_init(void __iomem *addr)
 	return 0;
 }
 
-static bool has_link(struct sparx5_private *priv, int port)
-{
-	u32 mask, val;
-	if (priv->ports[port].bus) {
-		val = readl(DEV1G_PCS1G_LINK_STATUS(priv->regs[port + __REG_MAX]));
-		mask = DEV1G_PCS1G_LINK_STATUS_LINK_UP;
-	} else {
-		val = readl(DEV1G_PCS1G_ANEG_STATUS(priv->regs[port + __REG_MAX]));
-		mask = DEV1G_PCS1G_ANEG_STATUS_ANEG_COMPLETE;
-	}
-
-	return !!(val & mask);
-}
-
 static int sparx5_switch_init(struct sparx5_private *priv)
 {
-	debug("%s\n", __FUNCTION__);
-
 	/* Initialize memories */
 	ram_init(QSYS_RAM_INIT(priv->regs[QSYS]));
 	ram_init(ASM_RAM_INIT(priv->regs[ASM]));
@@ -319,14 +295,12 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 {
 	int i;
 
-	debug("%s\n", __FUNCTION__);
-
 	/* Halt the calendar while changing it */
 	clrsetbits_le32(QSYS_CAL_CTRL(priv->regs[QSYS]),
 			QSYS_CAL_CTRL_CAL_MODE_MASK,
 			QSYS_CAL_CTRL_CAL_MODE(10));
 
-	for (i = 0; i < 7; i++)
+	for (i = 0; i < priv->data->num_cal_auto; i++)
 		/* All ports to '001' - 1Gb/s */
 		writel(01111111111, QSYS_CAL_AUTO(priv->regs[QSYS], i));
 
@@ -336,40 +310,48 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 			QSYS_CAL_CTRL_CAL_MODE(8));
 
 	/* Configure NPI port */
-	if (priv->ports[priv->data->npi_port].mac_type == IF_SGMII)
+	switch (priv->ports[priv->data->npi_port].mac_type) {
+	case IF_SGMII:
 		setbits_le32(PORT_CONF_DEV5G_MODES(priv->regs[PORT_CONF]),
 			     PORT_CONF_DEV5G_MODES_P64_SGMII);
-	else
+		break;
+	default:
 		clrbits_le32(PORT_CONF_DEV5G_MODES(priv->regs[PORT_CONF]),
 			     PORT_CONF_DEV5G_MODES_P64_SGMII);
+		break;
+	}
 
 	/* Enable all 10G ports */
-	writel(0xFFF, PORT_CONF_DEV10G_MODES(priv->regs[PORT_CONF]));
+	if (priv->data->target == SPARX5_TARGET)
+		writel(0xFFF, PORT_CONF_DEV10G_MODES(priv->regs[PORT_CONF]));
 
 	for (i = 0; i < priv->data->num_ports; i++) {
 		struct sparx5_phy_port *p = &priv->ports[i];
+
+		if (!p->active)
+			continue;
+
 		/* Enable 10G shadow interfaces */
-		if (p->active)
-			setbits_le32(DSM_DEV_TX_STOP_WM_CFG(priv->regs[DSM], i),
-				     DSM_DEV_TX_STOP_WM_CFG_DEV10G_SHADOW_ENA);
+		setbits_le32(DSM_DEV_TX_STOP_WM_CFG(priv->regs[DSM], i),
+			     DSM_DEV_TX_STOP_WM_CFG_DEV10G_SHADOW_ENA);
 
 		/* Enable shadow 5G interfaces */
-		if (p->active && (p->mac_type == IF_QSGMII) && (i < 12))
+		if (p->mac_type == IF_QSGMII && i < 12)
 			setbits_le32(PORT_CONF_DEV5G_MODES(priv->regs[PORT_CONF]), BIT(i));
 
 		/* MUXing for QSGMII */
-		if (p->active && (p->mac_type == IF_QSGMII)) {
-			setbits_le32(PORT_CONF_QSGMII_ENA(priv->regs[PORT_CONF]), BIT((i - i % 4) / 4));
-		}
+		if (p->mac_type == IF_QSGMII)
+			setbits_le32(PORT_CONF_QSGMII_ENA(priv->regs[PORT_CONF]),
+				     BIT((i - i % 4) / 4));
 
-		if (p->active && (p->mac_type == IF_QSGMII)) {
+		if (p->mac_type == IF_QSGMII) {
 			if ((i / 4 % 2) == 0) {
 				/* Affects d0-d3,d8-d11..d40-d43 */
 				writel(0x332, PORT_CONF_USGMII_CFG(priv->regs[PORT_CONF], i/8));
 			}
 		}
 
-		if (p->active && (p->mac_type == IF_QSGMII)) {
+		if (p->mac_type == IF_QSGMII) {
 			u32 p = (i / 4) * 4;
 			for (u32 cnt = 0; cnt < 4; cnt++) {
 				/* Must take the PCS out of reset for all 4 QSGMII instances */
@@ -393,34 +375,29 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 	}
 
 	/* BCAST/CPU pgid */
-	writel(0xffffffff, ANA_AC_PGID_CFG(priv->regs[ANA_AC], PGID_BROADCAST(priv)));
-	writel(0xffffffff, ANA_AC_PGID_CFG1(priv->regs[ANA_AC], PGID_BROADCAST(priv)));
-	writel(0x00000001, ANA_AC_PGID_CFG2(priv->regs[ANA_AC], PGID_BROADCAST(priv)));
-	writel(0x00000000, ANA_AC_PGID_CFG(priv->regs[ANA_AC], PGID_HOST(priv)));
-	writel(0x00000000, ANA_AC_PGID_CFG1(priv->regs[ANA_AC], PGID_HOST(priv)));
-	writel(0x00000000, ANA_AC_PGID_CFG2(priv->regs[ANA_AC], PGID_HOST(priv)));
+	if (priv->data->target == SPARX5_TARGET) {
+		writel(0xffffffff, ANA_AC_PGID_CFG(priv->regs[ANA_AC], PGID_BROADCAST(priv)));
+		writel(0xffffffff, ANA_AC_PGID_CFG1(priv->regs[ANA_AC], PGID_BROADCAST(priv)));
+		writel(0x00000001, ANA_AC_PGID_CFG2(priv->regs[ANA_AC], PGID_BROADCAST(priv)));
+		writel(0x00000000, ANA_AC_PGID_CFG(priv->regs[ANA_AC], PGID_HOST(priv)));
+		writel(0x00000000, ANA_AC_PGID_CFG1(priv->regs[ANA_AC], PGID_HOST(priv)));
+		writel(0x00000000, ANA_AC_PGID_CFG2(priv->regs[ANA_AC], PGID_HOST(priv)));
+	}
 
-	/*
-	 * Disable port-to-port by switching
+	/* Disable port-to-port by switching
 	 * Put front ports in "port isolation modes" - i.e. they can't send
 	 * to other ports - via the PGID sorce masks.
 	 */
 	for (i = 0; i < priv->data->num_ports; i++) {
-		writel(0, ANA_AC_SRC_CFG0(priv->regs[ANA_AC], i));
-		writel(0, ANA_AC_SRC_CFG1(priv->regs[ANA_AC], i));
-		writel(0, ANA_AC_SRC_CFG2(priv->regs[ANA_AC], i));
+		if (priv->data->target == SPARX5_TARGET) {
+			writel(0, ANA_AC_SRC_CFG0(priv->regs[ANA_AC], i));
+			writel(0, ANA_AC_SRC_CFG1(priv->regs[ANA_AC], i));
+			writel(0, ANA_AC_SRC_CFG2(priv->regs[ANA_AC], i));
+		}
 	}
 
-#if defined(CONFIG_CPU_PGID_ENA)
-	/* CPU copy UC+MC:FLOOD */
-	writel(1, ANA_AC_PGID_MISC_CFG(priv->regs[ANA_AC], PGID_L2_MC(priv)));
-	writel(1, ANA_AC_PGID_MISC_CFG(priv->regs[ANA_AC], PGID_L2_UC(priv)));
-#endif
+	writel(priv->data->cpu_port << 5, XQS_STAT_CFG(priv->regs[XQS]));
 
-	/* HACK: Convenience XQS XQS:SYSTEM:STAT_CFG */
-	writel(priv->data->cpu_port << 5, 0x6110c1dcc);
-
-#if defined(CONFIG_VLAN_ENABLE)
 	/* VLAN aware CPU port */
 	writel(ANA_CL_VLAN_CTRL_VLAN_AWARE_ENA |
 	       ANA_CL_VLAN_CTRL_VLAN_POP_CNT(1) |
@@ -431,7 +408,6 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 	       ANA_L3_VLAN_CFG(priv->regs[ANA_L3], MAC_VID));
 	/* Enable VLANs */
 	writel(1, ANA_L3_VLAN_CTRL(priv->regs[ANA_L3]));
-#endif
 
 	/* Enable switch-core and queue system */
 	writel(0x1, HSCH_RESET_CFG(priv->regs[HSCH]));
@@ -442,12 +418,10 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 
 static void sparx5_cpu_capture_setup(struct sparx5_private *priv)
 {
-	debug("%s\n", __FUNCTION__);
-
 	/* ASM CPU port: No preamble/IFH, enable padding */
 	writel(ASM_PORT_CFG_PAD_ENA |
 	       ASM_PORT_CFG_NO_PREAMBLE_ENA |
-	       ASM_PORT_CFG_INJ_FORMAT_CFG(CONFIG_IFH_FMT),
+	       ASM_PORT_CFG_INJ_FORMAT_CFG(CONFIG_IFH_FMT_NONE),
 	       ASM_PORT_CFG(priv->regs[ASM], priv->data->cpu_port));
 
 	/* Set Manual injection via DEVCPU_QS registers for CPU queue 0 */
@@ -464,22 +438,14 @@ static void sparx5_cpu_capture_setup(struct sparx5_private *priv)
 	setbits_le32(ANA_CL_FILTER_CTRL(priv->regs[ANA_CL], priv->data->cpu_port),
 		     ANA_CL_FILTER_CTRL_FORCE_FCS_UPDATE_ENA);
 
-#if 0
-	/* Enable basic learning mode */
-	setbits_le32(ANA_L2_LRN_CFG(priv->regs[ANA_L2]),
-		     ANA_L2_LRN_CFG_VSTAX_BASIC_LRN_MODE_ENA);
-#endif
-
 	/* Send a copy to CPU when found as forwarding entry */
 	setbits_le32(ANA_L2_FWD_CFG(priv->regs[ANA_L2]),
 		     ANA_L2_FWD_CFG_CPU_DMAC_COPY_ENA);
 }
 
-static void sparx5_port_init(struct sparx5_private *priv, int port, u32 mac_if)
+static void sparx5_port_sgmii_init(struct sparx5_private *priv, int port)
 {
 	void __iomem *regs = priv->regs[port + __REG_MAX];
-
-	debug("%s: port %d\n", __FUNCTION__, port);
 
 	sparx5_serdes_port_init(port,
 				 priv->ports[port].mac_type,
@@ -496,11 +462,11 @@ static void sparx5_port_init(struct sparx5_private *priv, int port, u32 mac_if)
 	       DEV1G_MAC_ENA_CFG_RX_ENA,
 	       DEV1G_MAC_ENA_CFG(regs));
 
-
 	/* Enable sgmii_mode_ena */
 	writel(DEV1G_PCS1G_MODE_CFG_SGMII_MODE_ENA, DEV1G_PCS1G_MODE_CFG(regs));
 
-	if (mac_if == IF_SGMII || IF_QSGMII) {
+	if (priv->ports[port].mac_type == IF_SGMII ||
+	    priv->ports[port].mac_type == IF_QSGMII) {
 		/*
 		 * Clear sw_resolve_ena(bit 0) and set adv_ability to
 		 * something meaningful just in case
@@ -527,20 +493,27 @@ static void sparx5_port_init(struct sparx5_private *priv, int port, u32 mac_if)
 	       DEV1G_DEV_RST_CTRL_USX_PCS_TX_RST |
 	       DEV1G_DEV_RST_CTRL_USX_PCS_RX_RST,
 	       DEV1G_DEV_RST_CTRL(regs));
+}
 
+static void sparx5_port_init(struct sparx5_private *priv, int port)
+{
+	switch (priv->ports[port].mac_type) {
+	case IF_SGMII:
+	case IF_QSGMII:
+	case IF_SGMII_CISCO:
+		sparx5_port_sgmii_init(priv, port);
+		break;
+	default:
+		printf("Unknown interface type: %d\n",
+		       priv->ports[port].mac_type);
+		return;
+	}
 
-#if defined(CONFIG_VLAN_ENABLE)
 	/* Make VLAN aware for CPU traffic */
 	writel(ANA_CL_VLAN_CTRL_VLAN_AWARE_ENA |
 	       ANA_CL_VLAN_CTRL_VLAN_POP_CNT(1) |
 	       MAC_VID,
 	       ANA_CL_VLAN_CTRL(priv->regs[ANA_CL], port));
-#endif
-
-#if defined(CONFIG_CPU_BPDU_ENA)
-	/* Enable BPDU redirect for debugging */
-	writel(0x55555555, ANA_CL_CAPTURE_BPDU_CFG(priv->regs[ANA_CL], port));
-#endif
 
 	/* Enable CPU port for any frame transfer */
 	setbits_le32(QFWD_SWITCH_PORT_MODE(priv->regs[QFWD], port),
@@ -582,12 +555,6 @@ static void mac_table_write_entry(struct sparx5_private *priv,
 static int sparx5_mac_table_add(struct sparx5_private *priv,
 				 const unsigned char *mac, int pgid)
 {
-#if defined(CONFIG_CPU_MACENTRY_ENA)
-	debug("%s: Add %02x:%02x:%02x:%02x:%02x:%02x pgid %d\n",
-	      __FUNCTION__,
-	      mac[0], mac[1], mac[2],
-	      mac[3], mac[4], mac[5], pgid);
-
 	mac_table_write_entry(priv, mac, MAC_VID);
 
 	writel(LRN_MAC_ACCESS_CFG2_MAC_ENTRY_ADDR(pgid - priv->data->num_ports) |
@@ -602,9 +569,6 @@ static int sparx5_mac_table_add(struct sparx5_private *priv,
 	       LRN_COMMON_ACCESS_CTRL(priv->regs[LRN]));
 
 	return sparx5_vlant_wait_for_completion(priv);
-#else
-	return 0;
-#endif
 }
 
 static int sparx5_mac_table_getnext(struct sparx5_private *priv,
@@ -616,8 +580,6 @@ static int sparx5_mac_table_getnext(struct sparx5_private *priv,
 				     u32 *cfg2p)
 {
 	int ret;
-
-	//debug("%s: start\n", __FUNCTION__);
 
 	mac_table_write_entry(priv, mac, *pvid);
 
@@ -653,16 +615,12 @@ static int sparx5_mac_table_getnext(struct sparx5_private *priv,
 		}
 	}
 
-	//debug("%s: ret %d\n", __FUNCTION__, ret);
-
 	return ret;
 }
 
 static int sparx5_initialize(struct sparx5_private *priv)
 {
 	int ret, i;
-
-	debug("%s\n", __FUNCTION__);
 
 	/* Initialize switch memories, enable core */
 	ret = sparx5_switch_init(priv);
@@ -673,21 +631,33 @@ static int sparx5_initialize(struct sparx5_private *priv)
 
 	for (i = 0; i < priv->data->num_ports; i++)
 		if (priv->ports[i].active)
-			sparx5_port_init(priv, i, priv->ports[i].mac_type);
+			sparx5_port_init(priv, i);
 
 	sparx5_cpu_capture_setup(priv);
 
 	return 0;
 }
 
+static bool sparx5_port_has_link(struct sparx5_private *priv, int port)
+{
+	u32 mask, val;
+	if (priv->ports[port].bus) {
+		val = readl(DEV1G_PCS1G_LINK_STATUS(priv->regs[port + __REG_MAX]));
+		mask = DEV1G_PCS1G_LINK_STATUS_LINK_UP;
+	} else {
+		val = readl(DEV1G_PCS1G_ANEG_STATUS(priv->regs[port + __REG_MAX]));
+		mask = DEV1G_PCS1G_ANEG_STATUS_ANEG_COMPLETE;
+	}
+
+	return !!(val & mask);
+}
+
 static int sparx5_start(struct udevice *dev)
 {
+	const u8 mac[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 	struct sparx5_private *priv = dev_get_priv(dev);
 	struct eth_pdata *pdata = dev_get_plat(dev);
-	const u8 mac[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 	int i, ret, phy_ok = 0, ret_err = 0;
-
-	debug("%s\n", __FUNCTION__);
 
 	ret = sparx5_initialize(priv);
 	if (ret)
@@ -702,29 +672,29 @@ static int sparx5_start(struct udevice *dev)
 	if (ret)
 		return ret;
 
-	for (i = 0; i < priv->data->num_ports; i++)
-		if (priv->ports[i].active) {
-			struct phy_device *phy = priv->ports[i].phy;
+	for (i = 0; i < priv->data->num_ports; i++) {
+		struct phy_device *phy = priv->ports[i].phy;
 
-			if (phy) {
-				/* Start up the PHY */
-				ret = phy_startup(phy);
-				if (ret) {
-					printf("Could not initialize PHY %s (port %d)\n",
-						   phy->dev->name, i);
-					ret_err = ret;
-					continue; /* try all phys */
-				} else {
-					phy_ok = 1;
-					if (i == priv->data->npi_port)
-						printf("NPI Port: ");
-					else
-						printf("Port %3d: ", i);
+		if (!priv->ports[i].active || !phy)
+			continue;
 
-					printf("%s (internal)\n", has_link(priv, i) ? "Up" : "Down");
-				}
-			}
+		/* Start up the PHY */
+		ret = phy_startup(phy);
+		if (ret) {
+			printf("Could not initialize PHY %s (port %d)\n",
+			       phy->dev->name, i);
+			ret_err = ret;
+			continue; /* try all phys */
+		} else {
+			phy_ok = 1;
+			if (i == priv->data->npi_port)
+				printf("NPI Port: ");
+			else
+				printf("Port %3d: ", i);
+
+			printf("%s (internal)\n", sparx5_port_has_link(priv, i) ? "Up" : "Down");
 		}
+	}
 
 	return phy_ok ? 0 : ret_err;
 }
@@ -733,8 +703,6 @@ static void sparx5_stop(struct udevice *dev)
 {
 	struct sparx5_private *priv = dev_get_priv(dev);
 	int i;
-
-	debug("%s\n", __FUNCTION__);
 
 	for (i = 0; i < priv->data->num_ports; i++) {
 		struct phy_device *phy = priv->ports[i].phy;
@@ -755,8 +723,6 @@ static int sparx5_send(struct udevice *dev, void *packet, int length)
 {
 	struct sparx5_private *priv = dev_get_priv(dev);
 
-	//debug("%s: %d bytes\n", __FUNCTION__, length);
-	hexdump(packet, length);
 	return mscc_send(priv->regs[QS], sparx5_regs_qs,
 			 NULL, 0, packet, length);
 }
@@ -767,23 +733,16 @@ static int sparx5_recv(struct udevice *dev, int flags, uchar **packetp)
 	u32 *rxbuf = (u32 *)net_rx_packets[0];
 	int byte_cnt = 0;
 
-	//debug("%s\n", __FUNCTION__);
-
 	byte_cnt = mscc_recv(priv->regs[QS], sparx5_regs_qs, rxbuf,
 			     priv->data->ifh_len, false);
 
 	*packetp = net_rx_packets[0];
 
 	if (byte_cnt > 0) {
-		if (byte_cnt >= ETH_FCS_LEN) {
+		if (byte_cnt >= ETH_FCS_LEN)
 			byte_cnt -= ETH_FCS_LEN;
-			//debug("%s: Got %d bytes\n", __FUNCTION__, byte_cnt);
-			hexdump(*packetp, byte_cnt);
-		} else {
-			debug("%s: Got undersized frame = %d bytes\n",
-			      __FUNCTION__, byte_cnt);
+		else
 			byte_cnt = 0; /* Runt? */
-		}
 	}
 
 	return byte_cnt;
@@ -816,8 +775,6 @@ static int sparx5_probe(struct udevice *dev)
 	size_t phy_addr;
 	struct mii_dev *bus;
 	struct ofnode_phandle_args phandle;
-
-	debug("%s\n", __FUNCTION__);
 
 	priv = dev_get_priv(dev);
 	if (!priv)
@@ -860,9 +817,8 @@ static int sparx5_probe(struct udevice *dev)
 		priv->regs[i] = dev_remap_addr_name(dev,
 						    priv->data->reg_names[i]);
 		if (!priv->regs[i]) {
-			debug
-			    ("Error can't get regs base addresses for %s\n",
-			     priv->data->reg_names[i]);
+			printf("Error can't get regs base addresses for %s\n",
+			       priv->data->reg_names[i]);
 			return -ENOMEM;
 		}
 	}
@@ -886,8 +842,6 @@ static int sparx5_probe(struct udevice *dev)
 			if (ofnode_read_resource(phandle.node, 0, &res))
 				return -ENOMEM;
 			phy_addr = res.start;
-
-			debug("%s: Port %d on phy %zd\n", __FUNCTION__, i, phy_addr);
 
 			/* Get mdio node */
 			mdio_node = ofnode_get_parent(phandle.node);
@@ -950,14 +904,10 @@ static int sparx5_probe(struct udevice *dev)
 		if (!priv->ports[i].bus)
 			continue;
 
-		debug("%s: Port %d on %s addr %d\n", __FUNCTION__,
-		      i, priv->ports[i].bus->name, priv->ports[i].phy_addr);
 		phy = phy_connect(priv->ports[i].bus,
 				  priv->ports[i].phy_addr, dev,
 				  PHY_INTERFACE_MODE_NA);
-
 		if (phy) {
-			debug("%s: PHY %s %s\n", __FUNCTION__, phy->bus->name, phy->drv->name);
 			priv->ports[i].phy = phy;
 
 			if (i == priv->data->npi_port) {
@@ -971,8 +921,7 @@ static int sparx5_probe(struct udevice *dev)
 					phy_write(phy, 0, 0x17, 0x20);
 				}
 			}
-		} else
-			debug("%s: No driver\n", __FUNCTION__);
+		}
 	}
 
 	dev_priv = priv;

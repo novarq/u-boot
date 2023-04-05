@@ -250,6 +250,10 @@
 			      <6 0x11080000 0x80000>,  // VCAP_SUPER
 			      <6 0x11580000 0x80000>,  // HSCH
 			      <6 0x10130000 0x10000>,  // PORT_CONF
+			      <6 0x110c0000 0x10000>,  // XQS
+			      <6 0x10508000 0x10000>,  // HSIO
+			      <6 0x11010000 0x10000>,  // GCB
+			      <6 0x00000000 0x10000>,  // CPU
 			      <6 0x10004000 0x4000>,   // DEV2G5_0
 			      <6 0x10010000 0x4000>,   // DEV2G5_1
 			      <6 0x1001c000 0x4000>,   // DEV2G5_2
@@ -319,7 +323,8 @@
 			      "ana_ac", "ana_cl", "ana_l2", "ana_l3",
 			      "asm", "lrn", "qfwd", "qs",
 			      "qsys", "rew", "vop", "dsm",
-			      "eacl", "vcap_super", "hsch", "port_conf",
+			      "eacl", "vcap_super", "hsch", "port_conf", "xqs",
+			      "hsio", "gcb", "cpu",
 			      "port0", "port1", "port2", "port3",
 			      "port4", "port5", "port6", "port7", "port8",
 			      "port9", "port10", "port11", "port12", "port13",
