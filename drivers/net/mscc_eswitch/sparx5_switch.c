@@ -253,6 +253,8 @@ extern void sparx5_serdes_port_init(int port,
 
 extern void sparx5_serdes_cmu_init(void);
 
+extern void sparx5_serdes_init(void);
+
 static void hexdump(u8 *buf, int len)
 {
 #if 0
@@ -379,9 +381,6 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 			}
 		}
 	}
-
-	/* Init (all) CMUs */
-	sparx5_serdes_cmu_init();
 
 #if defined(CONFIG_DDR_SPARX5_PCB134)
 	/* SGPIO HACK */
@@ -959,6 +958,10 @@ static int sparx5_probe(struct udevice *dev)
 	}
 
 	dev_priv = priv;
+
+	/* Power down all CMUs and set all serdeses in quiet mode */
+	sparx5_serdes_cmu_init();
+	sparx5_serdes_init();
 
 	return 0;
 }

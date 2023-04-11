@@ -27,6 +27,127 @@
  *                       Srinivas Bandari <srinivas.bandari@microchip.com>
  * ================================================================= */
 
+#define VTSS_ANT_CMU_MAX          14
+#define VTSS_ANT_SERDES_MAX       33
+
+#define VTSS_ANT_SERDES_25G_START 25
+
+/* Optimal power settings from GUC */
+#define VTSS_ANT_SERDES_QUIET_MODE_VAL  0x01ef4e0c
+
+enum vtss_ant_10g28cmu_mode {
+	VTSS_ANT_SD10G28_CMU_MAIN = 0,
+	VTSS_ANT_SD10G28_CMU_AUX1 = 1,
+	VTSS_ANT_SD10G28_CMU_AUX2 = 3,
+	VTSS_ANT_SD10G28_CMU_NONE = 4,
+	VTSS_ANT_SD10G28_CMU_MAX,
+};
+
+/* Map of 6G/10G serdes index to CMU index. */
+static const int
+vtss_ant_serdes_cmu_map[VTSS_ANT_SD10G28_CMU_MAX][VTSS_ANT_SERDES_25G_START] = {
+	[VTSS_ANT_SD10G28_CMU_MAIN] = {  2,  2,  2,  2,  2,
+				         2,  2,  2,  5,  5,
+				         5,  5,  5,  5,  5,
+				         5,  8, 11, 11, 11,
+				        11, 11, 11, 11, 11 },
+	[VTSS_ANT_SD10G28_CMU_AUX1] = {  0,  0,  3,  3,  3,
+				         3,  3,  3,  3,  3,
+				         6,  6,  6,  6,  6,
+				         6,  6,  9,  9, 12,
+				        12, 12, 12, 12, 12 },
+	[VTSS_ANT_SD10G28_CMU_AUX2] = {  1,  1,  1,  1,  4,
+				         4,  4,  4,  4,  4,
+				         4,  4,  7,  7,  7,
+				         7,  7, 10, 10, 10,
+				        10, 13, 13, 13, 13 },
+	[VTSS_ANT_SD10G28_CMU_NONE] = {  1,  1,  1,  1,  4,
+				         4,  4,  4,  4,  4,
+				         4,  4,  7,  7,  7,
+				         7,  7, 10, 10, 10,
+				        10, 13, 13, 13, 13 },
+};
+
+/* Get the index of the CMU which provides the clock for the specified serdes
+ * index and CMU mode.
+ */
+static int vtss_ant_serdes_cmu_get(enum vtss_ant_10g28cmu_mode mode,
+				   int sd_index)
+{
+	return vtss_ant_serdes_cmu_map[mode][sd_index];
+}
+
+static void vtss_ant_serdes_cmu_power_off(int cmu_idx)
+{
+	void __iomem *cmu_inst, *cmu_cfg_inst;
+
+	/* Power down CMU */
+	cmu_inst = VTSS_TO_SD_CMU(cmu_idx);
+	cmu_cfg_inst = VTSS_TO_SD_CMU_CFG(cmu_idx);
+
+	REG_WRM(VTSS_SD_CMU_TERM_TARGET_SD_CMU_CFG(cmu_cfg_inst),
+		VTSS_F_SD_CMU_TERM_TARGET_SD_CMU_CFG_EXT_CFG_RST(0),
+		VTSS_M_SD_CMU_TERM_TARGET_SD_CMU_CFG_EXT_CFG_RST);
+
+	REG_WRM(VTSS_SD10G_CMU_TARGET_CMU_05(cmu_inst),
+		VTSS_F_SD10G_CMU_TARGET_CMU_05_CFG_REFCK_TERM_EN(0),
+		VTSS_M_SD10G_CMU_TARGET_CMU_05_CFG_REFCK_TERM_EN);
+
+	REG_WRM(VTSS_SD10G_CMU_TARGET_CMU_09(cmu_inst),
+		VTSS_F_SD10G_CMU_TARGET_CMU_09_CFG_EN_TX_CK_DN(0),
+		VTSS_M_SD10G_CMU_TARGET_CMU_09_CFG_EN_TX_CK_DN);
+
+	REG_WRM(VTSS_SD10G_CMU_TARGET_CMU_06(cmu_inst),
+		VTSS_F_SD10G_CMU_TARGET_CMU_06_CFG_VCO_PD(1),
+		VTSS_M_SD10G_CMU_TARGET_CMU_06_CFG_VCO_PD);
+
+	REG_WRM(VTSS_SD10G_CMU_TARGET_CMU_09(cmu_inst),
+		VTSS_F_SD10G_CMU_TARGET_CMU_09_CFG_EN_TX_CK_UP(0),
+		VTSS_M_SD10G_CMU_TARGET_CMU_09_CFG_EN_TX_CK_UP);
+
+	REG_WRM(VTSS_SD10G_CMU_TARGET_CMU_08(cmu_inst),
+		VTSS_F_SD10G_CMU_TARGET_CMU_08_CFG_CK_TREE_PD(1),
+		VTSS_M_SD10G_CMU_TARGET_CMU_08_CFG_CK_TREE_PD);
+
+	REG_WRM(VTSS_SD10G_CMU_TARGET_CMU_0D(cmu_inst),
+		VTSS_F_SD10G_CMU_TARGET_CMU_0D_CFG_REFCK_PD(1) |
+		VTSS_F_SD10G_CMU_TARGET_CMU_0D_CFG_PD_DIV64(1) |
+		VTSS_F_SD10G_CMU_TARGET_CMU_0D_CFG_PD_DIV66(1),
+		VTSS_M_SD10G_CMU_TARGET_CMU_0D_CFG_REFCK_PD |
+		VTSS_M_SD10G_CMU_TARGET_CMU_0D_CFG_PD_DIV64 |
+		VTSS_M_SD10G_CMU_TARGET_CMU_0D_CFG_PD_DIV66);
+
+	REG_WRM(VTSS_SD10G_CMU_TARGET_CMU_06(cmu_inst),
+		VTSS_F_SD10G_CMU_TARGET_CMU_06_CFG_CTRL_LOGIC_PD(1),
+		VTSS_M_SD10G_CMU_TARGET_CMU_06_CFG_CTRL_LOGIC_PD);
+}
+
+/* Power off serdes (quiet mode) */
+static int vtss_ant_serdes_power_off(int sidx)
+{
+	void *sd_lane_tgt;
+
+	if (sidx < VTSS_SERDES_25G_START) {
+		sd_lane_tgt = VTSS_TO_SD_LANE(sidx);
+
+		/* Take serdes out of reset */
+		REG_WRM(VTSS_SD_LANE_TARGET_SD_LANE_CFG(sd_lane_tgt),
+			VTSS_F_SD_LANE_TARGET_SD_LANE_CFG_EXT_CFG_RST(0),
+			VTSS_M_SD_LANE_TARGET_SD_LANE_CFG_EXT_CFG_RST);
+
+		/* Set power down settings for quiet mode */
+		REG_WRM(VTSS_SD_LANE_TARGET_QUIET_MODE_6G(sd_lane_tgt),
+			VTSS_F_SD_LANE_TARGET_QUIET_MODE_6G_QUIET_MODE(VTSS_ANT_SERDES_QUIET_MODE_VAL),
+			VTSS_M_SD_LANE_TARGET_QUIET_MODE_6G_QUIET_MODE);
+	} else {
+		/* Skip 25G serdeses for now */
+		return 0;
+	}
+
+	return 0;
+}
+
+
 static vtss_rc  vtss_ant_sd10g28_cmu_reg_cfg(u32 cmu_num)
 {
     vtss_rc rc = VTSS_RC_OK;
@@ -135,7 +256,7 @@ static vtss_rc  vtss_ant_sd10g28_reg_cfg(vtss_sd10g28_setup_struct_t *res_struct
 					 u32 indx)
 {
     vtss_rc rc = VTSS_RC_OK;
-    u32 value;
+    u32 value, cmu_idx;
     void *sd_lane_tgt;
     void *sd_tgt;
 
@@ -147,7 +268,12 @@ static vtss_rc  vtss_ant_sd10g28_reg_cfg(vtss_sd10g28_setup_struct_t *res_struct
         sd_lane_tgt = VTSS_TO_SD_LANE(indx+VTSS_SERDES_10G_START);
     }
 
-/* Note: SerDes SD10G_LANE_1 is configured in 10G_LAN mode */
+    cmu_idx = vtss_ant_serdes_cmu_get(res_struct->cmu_sel[0], indx);
+    rc = vtss_ant_sd10g28_cmu_reg_cfg(cmu_idx);
+    if (rc)
+	return rc;
+
+    /* Note: SerDes SD10G_LANE_1 is configured in 10G_LAN mode */
     REG_WRM(VTSS_SD_LANE_TARGET_SD_LANE_CFG(sd_lane_tgt),
                 VTSS_F_SD_LANE_TARGET_SD_LANE_CFG_EXT_CFG_RST(1),
                 VTSS_M_SD_LANE_TARGET_SD_LANE_CFG_EXT_CFG_RST);
@@ -455,7 +581,7 @@ static vtss_rc  vtss_ant_sd10g28_reg_cfg(vtss_sd10g28_setup_struct_t *res_struct
 
 /* This data is extracted from the MESA demo application - NPI port */
 static vtss_sd10g28_setup_struct_t sgmii_conf = {
-	.cmu_sel = {0x1},
+	.cmu_sel = {VTSS_ANT_SD10G28_CMU_AUX1},
 	.cfg_lane_reserve_7_0 = {0x40},
 	.cfg_txrate_1_0 = {0x3},
 	.cfg_rxrate_1_0 = {0x3},
@@ -508,7 +634,7 @@ static vtss_sd10g28_setup_struct_t qsgmii_conf = {
 	.r_DwidthCtrl_2_0 = {0x2},
 	.cfg_pma_tx_ck_bitwidth_2_0  = {0x2},
 	.cfg_rxdiv_sel_2_0 = {0x2},
-	.cmu_sel = {0x1},
+	.cmu_sel = {VTSS_ANT_SD10G28_CMU_AUX1},
 	.cfg_lane_reserve_7_0 = {0x40},
 	.cfg_txrate_1_0 = {0x1},
 	.cfg_rxrate_1_0 = {0x1},
@@ -556,6 +682,27 @@ static vtss_sd10g28_setup_struct_t qsgmii_conf = {
 	.r_rx_pol_inv = {0x1},
 };
 
+void sparx5_serdes_cmu_init(void)
+{
+	int i;
+
+	debug("Powering down all CMUs");
+
+	for(i = 0; i < VTSS_ANT_CMU_MAX; i++)
+		vtss_ant_serdes_cmu_power_off(i);
+}
+
+void sparx5_serdes_init(void)
+{
+	int i;
+
+	debug("Powering down all serdeses");
+
+	for(i = 0; i < VTSS_ANT_SERDES_MAX; i++)
+		vtss_ant_serdes_power_off(i);
+}
+
+
 void sparx5_serdes_port_init(int port,
 							  u32 mac_type,
 							  u32 serdes_type,
@@ -572,14 +719,4 @@ void sparx5_serdes_port_init(int port,
 			sd_conf = &qsgmii_conf;
 
 		vtss_ant_sd10g28_reg_cfg(sd_conf, port, serdes_type, serdes_idx);
-}
-
-void sparx5_serdes_cmu_init(void)
-{
-	int i;
-	debug("%s: Init\n", __FUNCTION__);
-	for(i = 0; i < 14; i++) {
-		debug("%s: Init CMU %d\n", __FUNCTION__, i);
-		vtss_ant_sd10g28_cmu_reg_cfg(i);
-	}
 }
