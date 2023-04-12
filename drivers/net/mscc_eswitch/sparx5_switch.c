@@ -56,6 +56,18 @@ static const char * const sparx5_reg_names[] = {
 	"port63", "port64",
 };
 
+static const char * const lan969x_reg_names[] = {
+	"ana_ac", "ana_cl", "ana_l2", "ana_l3",
+	"asm", "lrn", "qfwd", "qs",
+	"qsys", "rew", "vop", "dsm", "eacl",
+	"vcap_super", "hsch", "port_conf", "xqs", "hsio", "gcb", "cpu",
+	"port0", "port1", "port2", "port3", "port4", "port5", "port6",
+	"port7", "port8", "port9", "port10", "port11", "port12", "port13",
+	"port14", "port15", "port16", "port17", "port18", "port19", "port20",
+	"port21", "port22", "port23", "port24", "port25", "port26", "port27",
+	"port28", "port29",
+};
+
 enum sparx5_ctrl_regs {
 	TARGET_ANA_AC,
 	TARGET_ANA_CL,
@@ -78,6 +90,7 @@ enum sparx5_ctrl_regs {
 	TARGET_GCB,
 	TARGET_CPU,
 	__REG_MAX,
+	/* This is used for all the ports even if it a 2.5G or RGMII */
 	TARGET_DEV2G5 = __REG_MAX,
 };
 
@@ -98,6 +111,7 @@ enum {
 
 enum {
 	SPARX5_TARGET,
+	LAN969X_TARGET,
 };
 
 struct sparx5_regs {
@@ -140,6 +154,26 @@ static struct mscc_match_data mscc_sparx5_data = {
 	.ifh_len = 9,
 	.num_cal_auto = 7,
 	.target = SPARX5_TARGET,
+};
+
+static struct mscc_match_data mscc_lan969x_data = {
+	.reg_names = lan969x_reg_names,
+	.regs = {
+		.reggrp_addr = lan969x_reggrp_addr,
+		.reggrp_cnt = lan969x_reggrp_cnt,
+		.reggrp_size = lan969x_reggrp_sz,
+		.reg_addr = lan969x_reg_addr,
+		.reg_cnt = lan969x_reg_cnt,
+		.regfield_addr = lan969x_regfield_addr,
+	},
+	.num_regs = 51,
+	.num_ports = 30,
+	.num_bus = 2,
+	.cpu_port = 30,
+	.npi_port = 28,
+	.ifh_len = 9,
+	.num_cal_auto = 7,
+	.target = LAN969X_TARGET,
 };
 
 struct sparx5_phy_port {
@@ -268,6 +302,9 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 			 PORT_CONF_DEV5G_MODES_DEV5G_D64_MODE,
 			 priv, PORT_CONF_DEV5G_MODES);
 		break;
+	case IF_RGMII:
+		/* Nothing to do here */
+		break;
 	default:
 		spx5_rmw(PORT_CONF_DEV5G_MODES_DEV5G_D64_MODE_SET(0),
 			 PORT_CONF_DEV5G_MODES_DEV5G_D64_MODE,
@@ -328,6 +365,11 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 		spx5_wr(0x00000000, priv, ANA_AC_PGID_CFG2(PGID_HOST(priv)));
 	}
 
+	if (priv->data->target == LAN969X_TARGET) {
+		spx5_wr(0xffffffff, priv, ANA_AC_PGID_CFG(PGID_BROADCAST(priv)));
+		spx5_wr(0x00000000, priv, ANA_AC_PGID_CFG(PGID_HOST(priv)));
+	}
+
 	/* Disable port-to-port by switching
 	 * Put front ports in "port isolation modes" - i.e. they can't send
 	 * to other ports - via the PGID sorce masks.
@@ -337,6 +379,10 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 			spx5_wr(0, priv, ANA_AC_SRC_CFG(i));
 			spx5_wr(0, priv, ANA_AC_SRC_CFG1(i));
 			spx5_wr(0, priv, ANA_AC_SRC_CFG2(i));
+		}
+
+		if (priv->data->target == LAN969X_TARGET) {
+			spx5_wr(0, priv, ANA_AC_SRC_CFG(i));
 		}
 	}
 
@@ -452,6 +498,48 @@ static void sparx5_port_sgmii_init(struct sparx5_private *priv, int port)
 		priv, DEV2G5_DEV_RST_CTRL(port));
 }
 
+static void sparx5_port_rgmii_init(struct sparx5_private *priv, int port)
+{
+	/* This function is called only on lan969x, and the RGMII ports are only
+	 * on the D28 and D29. They map in the DEVRGMII
+	 */
+	int rgmii_index = port - 28;
+
+	/* Enable the RGMII0 on the GPIOs */
+	spx5_wr(HSIO_WRAP_XMII_CFG_GPIO_XMII_CFG_SET(1),
+		priv, HSIO_WRAP_XMII_CFG(rgmii_index));
+
+	/* Take the RGMII out of reset and set speed to 1G */
+	spx5_wr(HSIO_WRAP_RGMII_CFG_TX_CLK_CFG_SET(1),
+		priv, HSIO_WRAP_RGMII_CFG(rgmii_index));
+
+	/* Enable the RGMII delays on the MAC both on the RX and TX.
+	 * The signal is shft by 90 degress
+	 */
+	spx5_wr(HSIO_WRAP_DLL_CFG_DLL_ENA_SET(1) |
+		HSIO_WRAP_DLL_CFG_DLL_CLK_ENA_SET(1) |
+		HSIO_WRAP_DLL_CFG_DLL_CLK_SEL_SET(4),
+		priv, HSIO_WRAP_DLL_CFG(rgmii_index, 0));
+
+	spx5_wr(HSIO_WRAP_DLL_CFG_DLL_ENA_SET(1) |
+		HSIO_WRAP_DLL_CFG_DLL_CLK_ENA_SET(1) |
+		HSIO_WRAP_DLL_CFG_DLL_CLK_SEL_SET(4),
+		priv, HSIO_WRAP_DLL_CFG(rgmii_index, 1));
+
+	/* Configure the port now */
+	spx5_wr(DEVRGMII_MAC_ENA_CFG_RX_ENA_SET(1) |
+		DEVRGMII_MAC_ENA_CFG_TX_ENA_SET(1),
+		priv, DEVRGMII_MAC_ENA_CFG(rgmii_index));
+
+	spx5_wr(DEVRGMII_MAC_IFG_CFG_TX_IFG_SET(4) |
+		DEVRGMII_MAC_IFG_CFG_RX_IFG1_SET(5) |
+		DEVRGMII_MAC_IFG_CFG_RX_IFG2_SET(1),
+		priv, DEVRGMII_MAC_IFG_CFG(rgmii_index));
+
+	spx5_wr(DEVRGMII_DEV_RST_CTRL_SPEED_SEL_SET(2),
+		priv, DEVRGMII_DEV_RST_CTRL(rgmii_index));
+}
+
 static void sparx5_port_init(struct sparx5_private *priv, int port)
 {
 	switch (priv->ports[port].mac_type) {
@@ -459,6 +547,9 @@ static void sparx5_port_init(struct sparx5_private *priv, int port)
 	case IF_QSGMII:
 	case IF_SGMII_CISCO:
 		sparx5_port_sgmii_init(priv, port);
+		break;
+	case IF_RGMII:
+		sparx5_port_rgmii_init(priv, port);
 		break;
 	default:
 		printf("Unknown interface type: %d\n",
@@ -600,6 +691,9 @@ static int sparx5_initialize(struct sparx5_private *priv)
 static bool sparx5_port_has_link(struct sparx5_private *priv, int port)
 {
 	u32 mask, val;
+
+	if (priv->ports[port].mac_type == IF_RGMII)
+		return priv->ports[port].phy->link;
 
 	if (priv->ports[port].bus) {
 		val = spx5_rd(priv, DEV2G5_PCS1G_LINK_STATUS(port));
@@ -910,6 +1004,7 @@ static const struct eth_ops sparx5_ops = {
 
 static const struct udevice_id mscc_sparx5_ids[] = {
 	{.compatible = "mscc,vsc7558-switch", .data = (ulong)&mscc_sparx5_data },
+	{.compatible = "microchip,lan969x-switch", .data = (ulong)&mscc_lan969x_data },
 	{ /* Sentinel */ }
 };
 

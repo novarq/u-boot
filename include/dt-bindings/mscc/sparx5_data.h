@@ -14,5 +14,6 @@
 #define	IF_SGMII	1
 #define	IF_SGMII_CISCO	2
 #define	IF_QSGMII	3
+#define	IF_RGMII	4
 
 #endif
