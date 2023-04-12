@@ -11,6 +11,9 @@
 #include <ddr_init.h>
 #include <ddr_reg.h>
 
+#define DDR_PATTERN1 0xAAAAAAAAU
+#define DDR_PATTERN2 0x55555555U
+
 DECLARE_GLOBAL_DATA_PTR;
 
 static uint32_t fdt_read_uint32(const void *fdt, int nodeoffset, const char *prop)
@@ -45,6 +48,82 @@ static void fdt_read_array(const void *fdt, int nodeoffset, const char *prop, vo
 		panic("%s: no %s property\n", __func__, prop);
 }
 
+/*******************************************************************************
+ * This function tests the DDR data bus wiring.
+ * This is inspired from the Data Bus Test algorithm written by Michael Barr
+ * in "Programming Embedded Systems in C and C++" book.
+ * resources.oreilly.com/examples/9781565923546/blob/master/Chapter6/
+ * File: memtest.c - This source code belongs to Public Domain.
+ * Returns 0 if success, and address value else.
+ ******************************************************************************/
+static uintptr_t ddr_test_data_bus(void)
+{
+	uint32_t pattern;
+
+	for (pattern = 1U; pattern != 0U; pattern <<= 1) {
+		mmio_write_32(PHYS_DDR, pattern);
+
+		if (mmio_read_32(PHYS_DDR) != pattern) {
+			return (uintptr_t)PHYS_DDR;
+		}
+	}
+
+	return 0;
+}
+
+/*******************************************************************************
+ * This function tests the DDR address bus wiring.
+ * This is inspired from the Data Bus Test algorithm written by Michael Barr
+ * in "Programming Embedded Systems in C and C++" book.
+ * resources.oreilly.com/examples/9781565923546/blob/master/Chapter6/
+ * File: memtest.c - This source code belongs to Public Domain.
+ * Returns 0 if success, and address value else.
+ ******************************************************************************/
+static uintptr_t ddr_test_addr_bus(struct ddr_config *config)
+{
+	uint64_t addressmask = (config->info.size - 1U);
+	uint64_t offset;
+	uint64_t testoffset = 0;
+
+	/* Write the default pattern at each of the power-of-two offsets. */
+	for (offset = sizeof(uint32_t); (offset & addressmask) != 0U; offset <<= 1) {
+		mmio_write_32(PHYS_DDR + (uint32_t)offset, DDR_PATTERN1);
+	}
+
+	/* Check for address bits stuck high. */
+	mmio_write_32(PHYS_DDR + (uint32_t)testoffset, DDR_PATTERN2);
+
+	for (offset = sizeof(uint32_t); (offset & addressmask) != 0U; offset <<= 1) {
+		if (mmio_read_32(PHYS_DDR + (uint32_t)offset) != DDR_PATTERN1) {
+			return (uint32_t)(PHYS_DDR + offset);
+		}
+	}
+
+	mmio_write_32(PHYS_DDR + (uint32_t)testoffset, DDR_PATTERN1);
+
+	/* Check for address bits stuck low or shorted. */
+	for (testoffset = sizeof(uint32_t); (testoffset & addressmask) != 0U; testoffset <<= 1) {
+		mmio_write_32(PHYS_DDR + (uint32_t)testoffset, DDR_PATTERN2);
+
+		if (mmio_read_32(PHYS_DDR) != DDR_PATTERN1) {
+			return PHYS_DDR;
+		}
+
+		for (offset = sizeof(uint32_t); (offset & addressmask) != 0U;
+		     offset <<= 1) {
+			if ((mmio_read_32(PHYS_DDR +
+					  (uint32_t)offset) != DDR_PATTERN1) &&
+			    (offset != testoffset)) {
+				return (uint32_t)(PHYS_DDR + offset);
+			}
+		}
+
+		mmio_write_32(PHYS_DDR + (uint32_t)testoffset, DDR_PATTERN1);
+	}
+
+	return 0;
+}
+
 int dram_init(void)
 {
 	struct ddr_config config = { };
@@ -70,7 +149,21 @@ int dram_init(void)
 
 	ret = ddr_init(&config);
 	if (ret)
-		panic("DDR initialization returns %d\n", ret);
+		PANIC("DDR initialization returns %d\n", ret);
+
+	if (!ret) {
+		uintptr_t err_off;
+
+		err_off = ddr_test_data_bus();
+		if (err_off != 0)
+			PANIC("DDR data bus test: can't access memory @ %p\n", (void*) err_off);
+
+		err_off = ddr_test_addr_bus(&config);
+		if (err_off != 0)
+			PANIC("DDR address bus test: can't access memory @ %p\n", (void*) err_off);
+
+		VERBOSE("Memory test passed\n");
+	}
 
 	memcpy((void *)VIRT_SDRAM_1, &config, sizeof(config));
 
