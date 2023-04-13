@@ -4,3 +4,5 @@
 #
 
 obj-y	= ddr_umctl.o sparx5_reset.o ddr_aux.o
+
+obj-$(CONFIG_ARMV8_PSCI) += sparx5_psci.o
