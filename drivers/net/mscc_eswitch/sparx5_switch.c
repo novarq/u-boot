@@ -8,6 +8,7 @@
 #include <common.h>
 #include <config.h>
 #include <dm.h>
+#include <dm/devres.h>
 #include <dm/of_access.h>
 #include <dm/of_addr.h>
 #include <fdt_support.h>
@@ -26,10 +27,6 @@
 
 #include <dt-bindings/mscc/sparx5_data.h>
 
-#define SPARX5_MIIM_BUS_COUNT 4
-
-static struct mscc_miim_dev miim[SPARX5_MIIM_BUS_COUNT];
-static int miim_count;
 static struct sparx5_private *dev_priv;
 
 #define MAX_PORT		65
@@ -44,7 +41,7 @@ static struct sparx5_private *dev_priv;
 #define ETH_ALEN		6
 #define IFH_LEN			9 /* 36 bytes */
 
-static const char * const regs_names[] = {
+static const char * const sparx5_reg_names[] = {
 	"port0", "port1", "port2", "port3", "port4", "port5", "port6",
 	"port7", "port8", "port9", "port10", "port11", "port12", "port13",
 	"port14", "port15", "port16", "port17", "port18", "port19", "port20",
@@ -59,8 +56,6 @@ static const char * const regs_names[] = {
 	"qfwd", "qs", "qsys", "rew",
 	"vop", "dsm", "eacl", "vcap_super", "hsch", "port_conf",
 };
-
-#define REGS_NAMES_COUNT ARRAY_SIZE(regs_names) + 1
 
 enum sparx5_ctrl_regs {
 	ANA_AC = MAX_PORT,
@@ -233,6 +228,20 @@ enum {
 	SPARX5_PCB_135 = 135,
 };
 
+struct mscc_match_data {
+	const char * const *reg_names;
+	u8 num_regs;
+	u8 num_ports;
+	u8 num_bus;
+};
+
+static struct mscc_match_data mscc_sparx5_data = {
+	.reg_names = sparx5_reg_names,
+	.num_regs = 81,
+	.num_ports = 65,
+	.num_bus = 4,
+};
+
 struct sparx5_phy_port {
 	bool active;
 	struct mii_dev *bus;
@@ -242,9 +251,13 @@ struct sparx5_phy_port {
 };
 
 struct sparx5_private {
-	void __iomem *regs[REGS_NAMES_COUNT];
-	struct mii_dev *bus[SPARX5_MIIM_BUS_COUNT];
-	struct sparx5_phy_port ports[MAX_PORT];
+	struct mscc_match_data *data;
+
+	void __iomem **regs;
+	struct mii_dev **bus;
+	struct mscc_miim_dev *miim;
+	struct sparx5_phy_port *ports;
+
 	u32 pcb;
 };
 
@@ -808,13 +821,15 @@ static int sparx5_recv(struct udevice *dev, int flags, uchar **packetp)
 	return byte_cnt;
 }
 
-static struct mii_dev *get_mdiobus(phys_addr_t base, unsigned long size)
+static struct mii_dev *get_mdiobus(struct sparx5_private *priv,
+				   phys_addr_t base, unsigned long size)
 {
 	int i = 0;
 
-	for (i = 0; i < SPARX5_MIIM_BUS_COUNT; ++i)
-		if (miim[i].miim_base == base && miim[i].miim_size == size)
-			return miim[i].bus;
+	for (i = 0; i < priv->data->num_bus; ++i)
+		if (priv->miim[i].miim_base == base &&
+		    priv->miim[i].miim_size == size)
+			return priv->miim[i].bus;
 
 	return NULL;
 }
@@ -837,7 +852,8 @@ static void add_port_entry(struct sparx5_private *priv, size_t index,
 
 static int sparx5_probe(struct udevice *dev)
 {
-	struct sparx5_private *priv = dev_get_priv(dev);
+	struct sparx5_private *priv;
+	int miim_count = 0;
 	int i;
 	int ret;
 	struct resource res;
@@ -849,27 +865,55 @@ static int sparx5_probe(struct udevice *dev)
 	struct ofnode_phandle_args phandle;
 	u32 serdes_args[SERDES_ARG_MAX];
 
+	debug("%s\n", __FUNCTION__);
+
+	priv = dev_get_priv(dev);
 	if (!priv)
 		return -EINVAL;
 
-	debug("%s\n", __FUNCTION__);
+	priv->data = (struct mscc_match_data*)dev_get_driver_data(dev);
+	if (!priv->data)
+		return -EINVAL;
 
 	if (dev_read_u32(dev, "mscc,pcb", &priv->pcb))
 		priv->pcb = SPARX5_PCB_UNKNOWN;
 
+	/* Allocate the resources dynamically */
+	priv->regs = devm_kzalloc(dev,
+				  priv->data->num_regs * sizeof(void __iomem *),
+				  GFP_KERNEL);
+	if (!priv->regs)
+		return -ENOMEM;
+
+	priv->miim = devm_kzalloc(dev,
+				  priv->data->num_bus * sizeof(struct mscc_miim_dev),
+				  GFP_KERNEL);
+	if (!priv->miim)
+		return -ENOMEM;
+
+	priv->bus = devm_kzalloc(dev,
+				 priv->data->num_bus * sizeof(struct mii_dev*),
+				 GFP_KERNEL);
+	if (!priv->bus)
+		return -ENOMEM;
+
+	priv->ports = devm_kzalloc(dev,
+				   priv->data->num_ports * sizeof(struct sparx5_phy_port),
+				   GFP_KERNEL);
+	if (!priv->ports)
+		return -ENOMEM;
+
 	/* Get registers and map them to the private structure */
-	for (i = 0; i < ARRAY_SIZE(regs_names); i++) {
-		priv->regs[i] = dev_remap_addr_name(dev, regs_names[i]);
+	for (i = 0; i < priv->data->num_regs; i++) {
+		priv->regs[i] = dev_remap_addr_name(dev,
+						    priv->data->reg_names[i]);
 		if (!priv->regs[i]) {
 			debug
 			    ("Error can't get regs base addresses for %s\n",
-			     regs_names[i]);
+			     priv->data->reg_names[i]);
 			return -ENOMEM;
 		}
 	}
-
-	/* Initialize miim buses */
-	memset(&miim, 0x0, sizeof(struct mscc_miim_dev) * SPARX5_MIIM_BUS_COUNT);
 
 	/* iterate all the ports and find out on which bus they are */
 	i = 0;
@@ -903,9 +947,9 @@ static int sparx5_probe(struct udevice *dev)
 			addr_size = resource_size(&res);
 
 			/* If the bus is new then create a new bus */
-			if (!get_mdiobus(addr_base, addr_size))
+			if (!get_mdiobus(priv, addr_base, addr_size))
 				priv->bus[miim_count] =
-					mscc_mdiobus_init(miim, &miim_count, addr_base,
+					mscc_mdiobus_init(priv->miim, &miim_count, addr_base,
 							  addr_size);
 			//mscc_mdiobus_pinctrl_apply(mdio_node);
 
@@ -977,7 +1021,7 @@ static int sparx5_remove(struct udevice *dev)
 	struct sparx5_private *priv = dev_get_priv(dev);
 	int i;
 
-	for (i = 0; i < SPARX5_MIIM_BUS_COUNT; i++) {
+	for (i = 0; i < priv->data->num_bus; i++) {
 		mdio_unregister(priv->bus[i]);
 		mdio_free(priv->bus[i]);
 	}
@@ -995,7 +1039,7 @@ static const struct eth_ops sparx5_ops = {
 };
 
 static const struct udevice_id mscc_sparx5_ids[] = {
-	{.compatible = "mscc,vsc7558-switch" },
+	{.compatible = "mscc,vsc7558-switch", .data = (ulong)&mscc_sparx5_data },
 	{ /* Sentinel */ }
 };
 
