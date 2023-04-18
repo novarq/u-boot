@@ -447,19 +447,6 @@ void boot0(void)
 	clrbits_le32(CPU_RESET(SPARX5_CPU_BASE), CPU_RESET_GIC_RST(1));
 }
 
-// Helper for MMC update (512-byte blocks)
-static int on_filesize(const char *name, const char *value, enum env_op op,
-		       int flags)
-{
-	ulong file_size = simple_strtoul(value, NULL, 16);
-
-	env_set_hex("filesize_512", DIV_ROUND_UP(file_size, 512));
-
-	return 0;
-}
-
-U_BOOT_ENV_CALLBACK(filesize, on_filesize);
-
 // Helper for MMC backup image
 static int on_mmc_cur(const char *name, const char *value, enum env_op op,
 		      int flags)

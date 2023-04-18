@@ -33,88 +33,13 @@
 #define PHYS_SRAM_MEM_ADDR		UL(0x632000000)
 #define PHYS_SRAM_MEM_SIZE		SZ_32K
 
-#if defined(CONFIG_MTDIDS_DEFAULT) && defined(CONFIG_MTDPARTS_DEFAULT)
-#define SPARX5_DEFAULT_MTD_ENV			      \
-	"mtdparts="CONFIG_MTDPARTS_DEFAULT"\0"	      \
-	"mtdids="CONFIG_MTDIDS_DEFAULT"\0"
-#else
-#define SPARX5_DEFAULT_MTD_ENV    /* Go away */
-#endif
-
 #define ENV_PCB		"pcb:sc,pcb_rev:do,"
 
 #if defined(CONFIG_MMC_SDHCI)
-#define SPARX5_MTD_SUPPORT_ENV						\
-	"mmcaddr=760000000\0"						\
-	"mmc_cur=1\0"							\
-	"mmc_bak=2\0"							\
-	"mmc_dev=mmc 0\0"						\
-	"mmc_image=new.ext4.gz\0"					\
-	"mmc_format=gpt guid ${mmc_dev} mmc_guid"			\
-	";gpt write ${mmc_dev} ${mmc_part}; env save\0"			\
-	"mmc_swap=env set mmc_cur ${mmc_bak}; env save\0"		\
-	"mmc_dlup=dhcp ${mmc_image};unzip ${fileaddr} ${mmcaddr};run mmc_update\0" \
-	"mmc_update=run mmcgetoffset"					\
-	";mmc write ${mmcaddr} ${mmc_start} ${filesize_512}\0"		\
-	"mmc_boot=run mmc_tryboot;env set mmc_cur ${mmc_bak}"		\
-	";run mmc_tryboot\0"						\
-	"mmc_tryboot=run mmcload"					\
-	";setenv mtdroot root_next=/dev/mmcblk0p${mmc_cur}; run ramboot\0" \
-	"mmcgetoffset=part start ${mmc_dev} ${mmc_cur} mmc_start\0"	\
-	"mmcload=ext4load ${mmc_dev}:${mmc_cur} ${loadaddr} Image.itb\0" \
-	"mmc_part=uuid_disk=${mmc_guid};"				\
-	"name=Boot0,size=1024MiB,type=linux;"				\
-	"name=Boot1,size=1024MiB,type=linux;"				\
-	"name=Data,size=1536MiB,type=linux\0"
-#define CFG_ENV_CALLBACK_LIST_STATIC ENV_PCB "filesize:filesize,mmc_cur:mmc_cur,"
-#define BOOTCMD_DEFAULT "mmc_boot"
+#define CFG_ENV_CALLBACK_LIST_STATIC ENV_PCB "mmc_cur:mmc_cur,"
 #else
-#define SPARX5_MTD_SUPPORT_ENV						\
-	"nand_cur=0\0"							\
-	"nand_bak=1\0"							\
-	"nand_image=new.ubifs\0"					\
-	"nand_mtdroot=root=ubi0:rootfs ro rootfstype=ubifs\0"		\
-	"nand_swap=env set nand_cur ${nand_bak}; env save\0"		\
-	"nand_dlup=dhcp ${nand_image};run nand_update\0"		\
-	"nand_update=sf probe;mtd erase Boot${nand_cur};ubi part Boot${nand_cur}" \
-	";ubi create rootfs -;ubi write ${fileaddr} rootfs ${filesize}\0" \
-	"nandload=sf probe;ubi part Boot${nand_cur};ubifsmount ubi0:rootfs" \
-	";ubifsload - /Image.itb\0"					\
-	"nand_boot=run nand_tryboot;env set nand_cur ${nand_bak}"	\
-	";run nand_tryboot\0"						\
-	"nand_tryboot=run nandload"					\
-	";setenv mtdroot ubi.mtd=Boot${nand_cur},2048 ${nand_mtdroot}"	\
-	";run ramboot\0"
 #define CFG_ENV_CALLBACK_LIST_STATIC ENV_PCB "nand_cur:nand_cur,"
-#define BOOTCMD_DEFAULT "nand_boot"
 #endif
-
-#define CFG_EXTRA_ENV_SETTINGS					\
-	SPARX5_DEFAULT_MTD_ENV						\
-	SPARX5_MTD_SUPPORT_ENV						\
-	"bootargs_extra=loglevel=4\0"					\
-	"bootcmd=run " BOOTCMD_DEFAULT "\0"				\
-	"bootdelay=3\0"							\
-	"loadaddr=740000000\0"						\
-	"console=ttyS0,115200n8\0"					\
-	"ramboot=run setup; bootm #${pcb}\0"				\
-	"rootargs=root=/dev/ram0 rw rootfstype=squashfs\0"		\
-	"setup=setenv bootargs console=${console} ${mtdparts}"		\
-	" ${rootargs} ${mtdroot} fis_act=${active} ${bootargs_extra}\0" \
-        "nor_boot=sf probe"                                             \
-	"; env set active linux; run nor_tryboot"			\
-	"; env set active linux.bk; run nor_tryboot\0"			\
-        "nor_tryboot=mtd read ${active} ${loadaddr}; run ramboot\0"	\
-	"nor_image=new.itb\0"						\
-	"nor_dlup=dhcp ${nor_image}; run nor_update\0"			\
-	"nor_update=sf probe; sf update ${fileaddr} linux ${filesize}\0" \
-	"nor_parts=spi0.0:1m(UBoot),256k(Env),256k(Env.bk),"		\
-	"20m(linux),20m(linux.bk),32m(rootfs_data)\0"			\
-	"nor_only=env set mtdparts mtdparts=${nor_parts}"		\
-	";env set bootcmd run nor_boot;env save\0"			\
-	"ubupdate=sf probe; sf update ${fileaddr} 0 ${filesize}\0"	\
-	"ramboot=run setup; bootm #${pcb}\0"				\
-	"bootdelay=3\0"
 
 #define CFG_ENV_FLAGS_LIST_STATIC "pcb:sc,pcb_rev:do"
 
