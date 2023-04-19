@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright (c) 2018 Microsemi Corporation
+ * Copyright (C) 2022 Microchip Technology Inc. and its subsidiaries.
  */
 
 #include <common.h>
@@ -149,6 +149,11 @@ int dram_init(void)
 }
 
 int board_init(void)
+{
+	return 0;
+}
+
+int board_late_init(void)
 {
 	return 0;
 }

@@ -1538,6 +1538,8 @@ config TARGET_LAN966X
 config TARGET_LAN969X
 	bool "Support Microchip LAN969X platform"
 	select ARM64
+	select ARCH_SUPPORT_TFABOOT
+	select BOARD_LATE_INIT
 	select DM
 	select DM_SERIAL
 	select OF_CONTROL
