@@ -1,8 +1,5 @@
 # SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 
-config SYS_VENDOR
-	default "mscc"
-
 if TARGET_SPARX5
 
 config SYS_BOARD

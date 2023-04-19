@@ -1,7 +1,0 @@
-config SYS_SDRAM_SIZE
-        hex "Size of SDRAM"
-	default 0x80000000
-
-config TARGET_SPARX5_REAL
-	bool "Sparx5 raw metal"
-	default y
