@@ -195,6 +195,19 @@ config PINCTRL_AT91
 	  can also control the multi-driver capability, pull-up and pull-down
 	  feature on each I/O pin.
 
+config PINCTRL_LAN966X
+	bool "LAN966X pinctrl driver"
+	depends on DM
+	help
+	  This option is to enable the LAN966X pinctrl driver.
+
+config PINCTRL_LAN969X
+	bool "LAN969X pinctrl driver"
+	depends on DM
+	select REGMAP
+	help
+	  This option is to enable the LAN969X pinctrl driver.
+
 config PINCTRL_AT91PIO4
 	bool "AT91 PIO4 pinctrl driver"
 	depends on DM

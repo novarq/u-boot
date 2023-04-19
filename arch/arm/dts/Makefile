@@ -1535,6 +1535,15 @@ dtb-$(CONFIG_ARCH_QEMU) += qemu-arm.dtb qemu-arm64.dtb
 dtb-$(CONFIG_TARGET_CORSTONE1000) += corstone1000-mps3.dtb \
 				corstone1000-fvp.dtb
 
+dtb-$(CONFIG_TARGET_LAN966X) += \
+	lan966x_sr.dtb \
+	lan966x_pcb8291.dtb \
+	lan966x_pcb8290.dtb \
+	lan966x_pcb8281.dtb
+
+dtb-$(CONFIG_TARGET_LAN969X) += \
+	lan969x_sr.dtb
+
 include $(srctree)/scripts/Makefile.dts
 
 targets += $(dtb-y)

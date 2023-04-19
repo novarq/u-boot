@@ -1535,6 +1535,17 @@ config TARGET_LAN966X
 	  Support for Microchip LAN966X reference board platform. It supports
 	  2Gb DDR, and a A7 core.
 
+config TARGET_LAN969X
+	bool "Support Microchip LAN969X platform"
+	select ARM64
+	select DM
+	select DM_SERIAL
+	select OF_CONTROL
+	imply CMD_DM
+	  help
+	  Support for Microchip LAN969X reference board platform. It supports
+	  2Gb DDR, and a A53 core.
+
 config TARGET_POPLAR
 	bool "Support Poplar 96boards Enterprise Edition Platform"
 	select ARM64
@@ -2390,6 +2401,7 @@ source "board/isee/igep003x/Kconfig"
 source "board/kontron/sl28/Kconfig"
 source "board/microchip/lan966x/Kconfig"
 source "board/mscc/sparx5/Kconfig"
+source "board/microchip/lan969x/Kconfig"
 source "board/myir/mys_6ulx/Kconfig"
 source "board/samsung/common/Kconfig"
 source "board/siemens/common/Kconfig"

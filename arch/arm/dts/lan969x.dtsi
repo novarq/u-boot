@@ -1,0 +1,143 @@
+#include "skeleton.dtsi"
+
+/ {
+	model = "lan969x";
+	compatible = "microchip,lan969x";
+
+	chosen {
+		u-boot,dm-pre-reloc;
+		stdout-path = &uart0;
+	};
+
+	aliases {
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53", "arm,armv8";
+			reg = <0>;
+			enable-method = "psci";
+		};
+	};
+
+	psci {
+		compatible = "arm,psci-0.2";
+		method = "smc";
+	};
+
+	fabric_clk: fabric_clk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <20000000>;
+		u-boot,dm-pre-reloc;
+	};
+
+	dummy_clk: dummy_clk {
+		compatible = "microchip,lan966x-clk-dummy";
+		#clock-cells = <0>;
+		clock-frequency = <24000000>;  // CPU clock = 24MHz
+		u-boot,dm-pre-reloc;
+	};
+
+	emmc_clk: emmc_clk {
+		compatible = "microchip,lan966x-clk-dummy";
+		#clock-cells = <0>;
+		clock-frequency = <24000000>;
+		u-boot,dm-pre-reloc;
+	};
+
+	ahb {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		u-boot,dm-pre-reloc;
+
+		apb {
+			compatible = "simple-bus";
+			#address-cells = <1>;
+			#size-cells = <1>;
+			u-boot,dm-pre-reloc;
+
+			gpio: pinctrl@e20100d4 {
+				compatible = "mchp,lan969x-pinctrl";
+				reg = <0xe20100d4 0xd4>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				gpio-ranges = <&gpio 0 0 66>;
+
+				fc0_pins: fc0_uart_pins {
+					pins = "GPIO_3", "GPIO_4";
+					function = "fc";
+				};
+
+				fc1_pins: fc1_uart_pins {
+					pins = "GPIO_28", "GPIO_29";
+					function = "fc";
+				};
+
+				fc2_pins: fc2_uart_pins {
+					pins = "GPIO_65", "GPIO_66";
+					function = "fc";
+				};
+
+				fc3_pins: fc3_uart_pins {
+					pins = "GPIO_55", "GPIO_56";
+					function = "fc";
+				};
+
+				emmc_sd_pins: emmc-sd-pins {
+					/* eMMC_SD - CMD, CLK, D0, D1, D2, D3, D4, D5, D6, D7, RSTN */
+					pins = "GPIO_14", "GPIO_15", "GPIO_16", "GPIO_17",
+						"GPIO_18", "GPIO_19", "GPIO_20", "GPIO_21",
+						"GPIO_22", "GPIO_23", "GPIO_24";
+					function = "emmc_sd";
+				};
+			};
+
+			uart0: serial@e0040200 {
+				u-boot,dm-pre-reloc;
+				compatible = "atmel,at91sam9260-usart";
+				reg = <0xE0040200 0x108>;
+				clocks = <&fabric_clk>;
+				clock-names = "usart";
+				status = "disabled";
+			};
+
+			sdhci0: sdhci-host@e0830000 {
+				u-boot,dm-pre-reloc;
+				compatible = "microchip,lan969x-sdhci";
+				reg = <0xE0830000 0x00000300>;
+				clocks = <&emmc_clk>, <&emmc_clk>;
+				clock-names = "hclock", "multclk";
+				bus-width = <4>;
+				status = "disabled";
+			};
+
+			emmc: emmc@e0830000 {
+				u-boot,dm-pre-reloc;
+				compatible = "microchip,lan969x-sdhci";
+				reg = <0xE0830000 0x00000300>;
+				bus-width = <4>;
+				clocks = <&emmc_clk>, <&emmc_clk>;
+				clock-names = "hclock", "multclk";
+				status = "disabled";
+			};
+
+			qspi: qspi@e0834000 {
+				u-boot,dm-pre-reloc;
+				compatible = "microchip,lan966x-qspi";
+				reg = <0xE0804000 0x00000100>, <0x20000000 0x08000000>;
+				reg-names = "qspi_base", "qspi_mmap";
+				clocks =  <&dummy_clk>, <&dummy_clk>;
+				clock-names = "pclk", "qspick";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				status = "disabled";
+			};
+
+		};
+	};
+};
