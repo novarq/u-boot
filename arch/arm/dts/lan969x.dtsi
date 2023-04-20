@@ -36,7 +36,7 @@
 	};
 
 	dummy_clk: dummy_clk {
-		compatible = "microchip,lan966x-clk-dummy";
+		compatible = "fixed-clock";
 		#clock-cells = <0>;
 		clock-frequency = <24000000>;  // CPU clock = 24MHz
 		u-boot,dm-pre-reloc;
