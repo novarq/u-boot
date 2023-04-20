@@ -43,7 +43,7 @@
 	};
 
 	emmc_clk: emmc_clk {
-		compatible = "microchip,lan966x-clk-dummy";
+		compatible = "fixed-clock";
 		#clock-cells = <0>;
 		clock-frequency = <24000000>;
 		u-boot,dm-pre-reloc;

@@ -15,6 +15,7 @@
 #define ATMEL_SDHC_MIN_FREQ	400000
 #define ATMEL_SDHC_GCK_RATE	240000000
 #define LAN966X_GCK_RATE	30000000
+#define USE_DT			0
 
 #define ATMEL_SDHC_MC1R 0x204
 #define ATMEL_SDHC_MC1R_FCD	0x80
@@ -122,7 +123,8 @@ static int atmel_sdhci_probe(struct udevice *dev)
 	if (ret)
 		return ret;
 
-	clk_set_rate(&clk, gck_rate);
+	if (gck_rate != USE_DT)
+		clk_set_rate(&clk, gck_rate);
 
 	max_clk = clk_get_rate(&clk);
 	if (!max_clk)
@@ -140,6 +142,13 @@ static int atmel_sdhci_probe(struct udevice *dev)
 	host->max_clk = max_clk;
 	host->mmc = &plat->mmc;
 	host->mmc->dev = dev;
+
+	/* Sunrise clock limitations */
+	if (host->max_clk < 25000000) {
+		/* Hi-Speed requires 25MHz */
+		printf("emmc: Low clock rate detected, disabling HS modes\n");
+		host->quirks |= SDHCI_QUIRK_BROKEN_HISPD_MODE;
+	}
 
 	ret = sdhci_setup_cfg(&plat->cfg, host, 0, ATMEL_SDHC_MIN_FREQ);
 	if (ret)
@@ -170,6 +179,7 @@ static const struct udevice_id atmel_sdhci_ids[] = {
 	{ .compatible = "microchip,sam9x60-sdhci", .data = ATMEL_SDHC_GCK_RATE },
 	{ .compatible = "microchip,sama7g5-sdhci", .data = ATMEL_SDHC_GCK_RATE },
 	{ .compatible = "microchip,lan966x-sdhci", .data = LAN966X_GCK_RATE },
+	{ .compatible = "microchip,lan969x-sdhci", .data = USE_DT },
 	{ }
 };
 
