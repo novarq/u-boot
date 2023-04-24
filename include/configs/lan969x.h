@@ -27,4 +27,6 @@
 
 #define CFG_SYS_BOOTMAPSZ	SZ_64M	/* Initial map for Linux*/
 
+#define CFG_ENV_CALLBACK_LIST_STATIC "mmc_cur:mmc_cur"
+
 #endif	/* __LAN969X_CONFIG_H */
