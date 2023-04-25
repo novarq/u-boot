@@ -51,3 +51,10 @@ config MSCC_SPARX5_SWITCH
 	select PHYLIB
 	help
 	  This driver supports the Sparx5 network switch device.
+
+config MSCC_LAN966X_SWITCH
+	bool "LAN966x switch driver"
+	depends on DM_ETH
+	select PHYLIB
+	help
+	  This driver supports the LAN966x network switch device.
