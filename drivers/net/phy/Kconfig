@@ -220,6 +220,9 @@ config PHY_MICREL_KSZ8XXX
 
 endif # PHY_MICREL
 
+config PHY_MICROCHIP
+	bool "Microchip Ethernet PHYs support"
+
 config PHY_MOTORCOMM
 	tristate "Motorcomm PHYs"
 	help
