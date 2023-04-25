@@ -14,6 +14,7 @@
 
 #define ATMEL_SDHC_MIN_FREQ	400000
 #define ATMEL_SDHC_GCK_RATE	240000000
+#define LAN966X_GCK_RATE	30000000
 
 #define ATMEL_SDHC_MC1R 0x204
 #define ATMEL_SDHC_MC1R_FCD	0x80
@@ -97,6 +98,7 @@ static int atmel_sdhci_probe(struct udevice *dev)
 	struct mmc_uclass_priv *upriv = dev_get_uclass_priv(dev);
 	struct atmel_sdhci_plat *plat = dev_get_plat(dev);
 	struct sdhci_host *host = dev_get_priv(dev);
+	u32 gck_rate = dev_get_driver_data(dev);
 	u32 max_clk;
 	struct clk clk;
 	int ret;
@@ -120,7 +122,7 @@ static int atmel_sdhci_probe(struct udevice *dev)
 	if (ret)
 		return ret;
 
-	clk_set_rate(&clk, ATMEL_SDHC_GCK_RATE);
+	clk_set_rate(&clk, gck_rate);
 
 	max_clk = clk_get_rate(&clk);
 	if (!max_clk)
@@ -164,9 +166,10 @@ static int atmel_sdhci_bind(struct udevice *dev)
 }
 
 static const struct udevice_id atmel_sdhci_ids[] = {
-	{ .compatible = "atmel,sama5d2-sdhci" },
-	{ .compatible = "microchip,sam9x60-sdhci" },
-	{ .compatible = "microchip,sama7g5-sdhci" },
+	{ .compatible = "atmel,sama5d2-sdhci", .data = ATMEL_SDHC_GCK_RATE },
+	{ .compatible = "microchip,sam9x60-sdhci", .data = ATMEL_SDHC_GCK_RATE },
+	{ .compatible = "microchip,sama7g5-sdhci", .data = ATMEL_SDHC_GCK_RATE },
+	{ .compatible = "microchip,lan966x-sdhci", .data = LAN966X_GCK_RATE },
 	{ }
 };
 

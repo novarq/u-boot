@@ -522,8 +522,8 @@ config MMC_SDHCI_ASPEED
 
 config MMC_SDHCI_ATMEL
 	bool "Atmel SDHCI controller support"
-	depends on ARCH_AT91
-	depends on DM_MMC && BLK && ARCH_AT91
+	depends on ARCH_AT91 || TARGET_LAN966X
+	depends on DM_MMC && BLK && (ARCH_AT91 || TARGET_LAN966X)
 	depends on MMC_SDHCI
 	help
 	  This enables support for the Atmel SDHCI controller, which supports
