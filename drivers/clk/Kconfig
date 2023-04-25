@@ -150,6 +150,13 @@ config CLK_K210_SET_RATE
 	  Add functionality to calculate new rates for K210 PLLs. Enabling this
 	  feature adds around 1K to U-Boot's final size.
 
+config CLK_LAN966X
+	bool "Clock support for LAN966X, LAN969X"
+	depends on CLK && (TARGET_LAN966X || TARGET_LAN969X)
+	default y
+	help
+	  Clock driver for Microchip LAN96XX platforms.
+
 config CLK_MPC83XX
 	bool "Enable MPC83xx clock driver"
 	depends on CLK

@@ -29,6 +29,11 @@ static struct lan966x_driver_data lan966x_data = {
 	.parent_rate = 600000000,
 };
 
+static struct lan966x_driver_data lan969x_data = {
+	.clk_cnt = 12,
+	.parent_rate = 1000000000,
+};
+
 static void* lan966x_clk_ctlreg(struct lan966x_clk *gck, u8 id)
 {
 	return gck->base + (id * sizeof(u32));
@@ -71,8 +76,7 @@ static ulong lan966x_clk_get_rate(struct clk *clk)
 
 	val = readl(lan966x_clk_ctlreg(gck, clk->id));
 
-	div = FIELD_GET(GCK_PRESCALER, val);
-	div += 1;
+	div = 1 + FIELD_GET(GCK_PRESCALER, val);
 
 	return parent_rate / div;
 }
@@ -127,6 +131,7 @@ static struct clk_ops lan966x_clk_ops = {
 
 static const struct udevice_id lan966x_clk_ids[] = {
 	{ .compatible = "mchp,lan966x-clk", .data = (unsigned long)&lan966x_data },
+	{ .compatible = "mchp,lan969x-clk", .data = (unsigned long)&lan969x_data },
 	{ }
 };
 
