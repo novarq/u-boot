@@ -18,6 +18,12 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+enum {
+	BOARD_TYPE_SUNRISE,
+	BOARD_TYPE_PCB8398,
+	BOARD_TYPE_PCB8422,
+};
+
 typedef enum {
 	LAN966X_STRAP_BOOT_MMC_FC = 0,
         LAN966X_STRAP_BOOT_QSPI_FC = 1,
@@ -147,6 +153,46 @@ int dram_init(void)
 
 	return 0;
 }
+
+static void do_board_detect(void)
+{
+	/* CPU_BUILDID == 0 on ASIC */
+	if (in_le32(CPU_BUILDID(LAN969X_CPU_BASE)) == 0) {
+		/* For now, just select pcb8398 */
+		gd->board_type = BOARD_TYPE_PCB8398;
+	} else
+		/* Sunrise FPGA board */
+		gd->board_type = BOARD_TYPE_SUNRISE;
+}
+
+#if defined(CONFIG_MULTI_DTB_FIT)
+int board_fit_config_name_match(const char *name)
+{
+	if (gd->board_type == BOARD_TYPE_SUNRISE &&
+	    strcmp(name, "lan969x_sr") == 0)
+		return 0;
+
+	if (gd->board_type == BOARD_TYPE_PCB8398 &&
+	    strcmp(name, "lan969x_pcb8398") == 0)
+		return 0;
+
+	if (gd->board_type == BOARD_TYPE_PCB8422 &&
+	    strcmp(name, "lan969x_pcb8422") == 0)
+		return 0;
+
+	return -1;
+}
+#endif
+
+#if defined(CONFIG_DTB_RESELECT)
+int embedded_dtb_select(void)
+{
+	do_board_detect();
+	fdtdec_setup();
+
+	return 0;
+}
+#endif
 
 int board_init(void)
 {

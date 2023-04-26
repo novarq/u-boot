@@ -1,10 +1,10 @@
 /dts-v1/;
 
-#include "lan969x_sr.dtsi"
+#include "lan969x_a0.dtsi"
 #include "lan969x.dtsi"
 
 / {
-	model = "lan969x Sunrise FPGA board";
+	model = "lan969x UNG8398 EVB";
 	config {
 		u-boot,mmc-env-partition = "Env";
 	};
@@ -24,7 +24,6 @@
 	status = "okay";
 	pinctrl-0 = <&emmc_sd_pins>;
 	pinctrl-names = "default";
-	max-frequency = <24000000>;	/* Sunrise limitation */
 };
 
 &qspi {

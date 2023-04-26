@@ -1,15 +1,10 @@
 #include "skeleton.dtsi"
+#include <dt-bindings/clk/mchp,lan969x.h>
 
 / {
-	model = "lan969x";
-	compatible = "microchip,lan969x";
-
 	chosen {
 		u-boot,dm-pre-reloc;
 		stdout-path = &uart0;
-	};
-
-	aliases {
 	};
 
 	cpus {
@@ -26,27 +21,6 @@
 	psci {
 		compatible = "arm,psci-0.2";
 		method = "smc";
-	};
-
-	fabric_clk: fabric_clk {
-		compatible = "fixed-clock";
-		#clock-cells = <0>;
-		clock-frequency = <20000000>;
-		u-boot,dm-pre-reloc;
-	};
-
-	dummy_clk: dummy_clk {
-		compatible = "fixed-clock";
-		#clock-cells = <0>;
-		clock-frequency = <24000000>;  // CPU clock = 24MHz
-		u-boot,dm-pre-reloc;
-	};
-
-	emmc_clk: emmc_clk {
-		compatible = "fixed-clock";
-		#clock-cells = <0>;
-		clock-frequency = <24000000>;
-		u-boot,dm-pre-reloc;
 	};
 
 	ahb {
@@ -110,7 +84,7 @@
 				u-boot,dm-pre-reloc;
 				compatible = "microchip,lan969x-sdhci";
 				reg = <0xE0830000 0x00000300>;
-				clocks = <&emmc_clk>, <&emmc_clk>;
+				clocks = <&clks CLK_ID_SDMMC0>, <&clks CLK_ID_SDMMC0>;
 				clock-names = "hclock", "multclk";
 				bus-width = <4>;
 				status = "disabled";
@@ -121,7 +95,7 @@
 				compatible = "microchip,lan969x-sdhci";
 				reg = <0xE0830000 0x00000300>;
 				bus-width = <4>;
-				clocks = <&emmc_clk>, <&emmc_clk>;
+				clocks = <&clks CLK_ID_SDMMC0>, <&clks CLK_ID_SDMMC0>;
 				clock-names = "hclock", "multclk";
 				status = "disabled";
 			};
@@ -131,8 +105,8 @@
 				compatible = "microchip,lan966x-qspi";
 				reg = <0xE0804000 0x00000100>, <0x20000000 0x08000000>;
 				reg-names = "qspi_base", "qspi_mmap";
-				clocks =  <&dummy_clk>, <&dummy_clk>;
-				clock-names = "pclk", "qspick";
+				clocks =  <&clks CLK_ID_QSPI0>;
+				clock-names = "qspick";
 				#address-cells = <1>;
 				#size-cells = <0>;
 				status = "disabled";

@@ -1542,7 +1542,9 @@ dtb-$(CONFIG_TARGET_LAN966X) += \
 	lan966x_pcb8281.dtb
 
 dtb-$(CONFIG_TARGET_LAN969X) += \
-	lan969x_sr.dtb
+	lan969x_sr.dtb		\
+	lan969x_pcb8398.dtb	\
+	lan969x_pcb8422.dtb
 
 include $(srctree)/scripts/Makefile.dts
 
