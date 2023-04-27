@@ -715,6 +715,9 @@ static int sdhci_set_ios(struct mmc *mmc)
 	return 0;
 }
 
+#define SDMMC_MC1R		0x204
+#define SDMMC_MC1R_FCD		BIT(7) /* Force card detection */
+
 static int sdhci_init(struct mmc *mmc)
 {
 	struct sdhci_host *host = mmc->priv;
@@ -726,6 +729,7 @@ static int sdhci_init(struct mmc *mmc)
 #endif
 
 	sdhci_reset(host, SDHCI_RESET_ALL);
+	sdhci_writeb(host, SDMMC_MC1R_FCD, SDMMC_MC1R);
 
 #if defined(CONFIG_FIXED_SDHCI_ALIGNED_BUFFER)
 	host->align_buffer = (void *)CONFIG_FIXED_SDHCI_ALIGNED_BUFFER;
