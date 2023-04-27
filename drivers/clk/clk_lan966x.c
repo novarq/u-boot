@@ -8,13 +8,6 @@
 #include <regmap.h>
 #include <syscon.h>
 #include <linux/bitfield.h>
-#if defined(CONFIG_TARGET_LAN966X)
-#include <dt-bindings/clk/mchp,lan966x.h>
-#elif defined(CONFIG_TARGET_LAN969X)
-#include <dt-bindings/clk/mchp,lan969x.h>
-#else
-#error Driver not supported on this platform
-#endif
 
 #define GCK_ENA         BIT(0)
 #define GCK_SRC_SEL     GENMASK(9, 8)
