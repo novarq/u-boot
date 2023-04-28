@@ -890,7 +890,7 @@ static int atmel_qspi_set_gclk(struct udevice *bus, uint hz)
 	}
 
 	ret = clk_disable(&gclk);
-	if (ret)
+	if (ret && ret != -ENOSYS)
 		dev_err(bus, "Failed to disable QSPI generic clock\n");
 
 	ret = clk_set_rate(&gclk, hz);
@@ -900,7 +900,7 @@ static int atmel_qspi_set_gclk(struct udevice *bus, uint hz)
 	}
 
 	ret = clk_enable(&gclk);
-	if (ret)
+	if (ret && ret != -ENOSYS)
 		dev_err(bus, "Failed to enable QSPI generic clock\n");
 
 	return ret;
@@ -1023,7 +1023,7 @@ static int atmel_qspi_enable_clk(struct udevice *dev)
 	}
 
 	ret = clk_enable(&pclk);
-	if (ret) {
+	if (ret && ret != -ENOSYS) {
 		dev_err(dev, "Failed to enable QSPI peripheral clock\n");
 		return ret;
 	}
@@ -1037,7 +1037,7 @@ static int atmel_qspi_enable_clk(struct udevice *dev)
 		}
 
 		ret = clk_enable(&qspick);
-		if (ret)
+		if (ret && ret != -ENOSYS)
 			dev_err(dev, "Failed to enable QSPI system clock\n");
 	} else if (aq->caps->has_gclk) {
 		ret = clk_get_by_name(dev, "gclk", &gclk);
@@ -1047,7 +1047,7 @@ static int atmel_qspi_enable_clk(struct udevice *dev)
 		}
 
 		ret = clk_enable(&gclk);
-		if (ret)
+		if (ret && ret != -ENOSYS)
 			dev_err(dev, "Failed to enable QSPI system clock\n");
 	}
 
