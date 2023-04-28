@@ -13,8 +13,8 @@
 #include <env.h>
 #include <env_internal.h>
 
-#include "lan969x_targets.h"
-#include "lan969x_regs_sr.h"
+#include <asm/arch/lan969x_targets_a0.h>
+#include <asm/arch/lan969x_regs_a0.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
