@@ -23,7 +23,9 @@
 #include <linux/io.h>
 #include <linux/iopoll.h>
 #include <linux/ioport.h>
+#ifdef CONFIG_ARCH_AT91
 #include <mach/clk.h>
+#endif
 #include <spi.h>
 #include <spi-mem.h>
 
@@ -869,7 +871,7 @@ static int atmel_qspi_set_gclk(struct udevice *bus, uint hz)
 		dev_err(bus, "Failed to disable QSPI generic clock\n");
 
 	ret = clk_set_rate(&gclk, hz);
-	if (ret < 0) {
+	if (ret < 0 && ret != -ENOSYS) {
 		dev_err(bus, "Failed to set generic clock rate.\n");
 		return ret;
 	}
