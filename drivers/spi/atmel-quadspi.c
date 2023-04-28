@@ -262,6 +262,7 @@ struct atmel_qspi_caps {
 	bool has_ricr;
 	bool octal;
 	bool has_lan966x;
+	bool fpga;
 };
 
 struct atmel_qspi_priv_ops;
@@ -699,7 +700,10 @@ static int atmel_qspi_sama7g5_set_cfg(struct atmel_qspi *aq,
 	 * Serial Memory Mode (SMM).
 	 */
 	if (aq->mr != QSPI_MR_SMM) {
-		atmel_qspi_write(QSPI_MR_SMM | QSPI_MR_DQSDLYEN, aq, QSPI_MR);
+		if (aq->caps->fpga)
+			atmel_qspi_write(QSPI_MR_SMM, aq, QSPI_MR);
+		else
+			atmel_qspi_write(QSPI_MR_SMM | QSPI_MR_DQSDLYEN, aq, QSPI_MR);
 		ret = atmel_qspi_update_config(aq);
 		if (ret)
 			return ret;
@@ -928,7 +932,10 @@ static int atmel_qspi_sama7g5_set_speed(struct udevice *bus, uint hz)
 	}
 
 	/* Set the QSPI controller by default in Serial Memory Mode */
-	atmel_qspi_write(QSPI_MR_SMM | QSPI_MR_DQSDLYEN, aq, QSPI_MR);
+	if (aq->caps->fpga)
+		atmel_qspi_write(QSPI_MR_SMM, aq, QSPI_MR);
+	else
+		atmel_qspi_write(QSPI_MR_SMM | QSPI_MR_DQSDLYEN, aq, QSPI_MR);
 	ret = atmel_qspi_update_config(aq);
 	if (ret)
 		return ret;
@@ -1065,7 +1072,8 @@ static int lan966x_qspi_init(struct atmel_qspi *aq)
 
 	atmel_qspi_write(QSPI_CR_DLLOFF, aq, QSPI_CR);
 
-	if ((ret = atmel_qspi_poll_sr2_clear(aq, QSPI_SR2_DLOCK))) {
+	if (!aq->caps->fpga &&
+	    (ret = atmel_qspi_poll_sr2_clear(aq, QSPI_SR2_DLOCK))) {
 		dev_err(aq->dev, "QSPI_SR2_DLOCK not cleared\n");
 		return ret;
 	}
@@ -1073,7 +1081,8 @@ static int lan966x_qspi_init(struct atmel_qspi *aq)
 	/* Set DLLON and STPCAL register */
 	atmel_qspi_write(QSPI_CR_DLLON | QSPI_CR_STPCAL, aq, QSPI_CR);
 
-	if ((ret = atmel_qspi_poll_sr2_set(aq, QSPI_SR2_DLOCK))) {
+	if (!aq->caps->fpga &&
+	    (ret = atmel_qspi_poll_sr2_set(aq, QSPI_SR2_DLOCK))) {
 		dev_err(aq->dev, "QSPI_SR2_DLOCK not set\n");
 		return ret;
 	}
@@ -1100,7 +1109,8 @@ static int lan966x_qspi_init(struct atmel_qspi *aq)
 	/* Set DLLON and STPCAL register */
 	atmel_qspi_write(QSPI_CR_DLLON | QSPI_CR_STPCAL, aq, QSPI_CR);
 
-	if ((ret = atmel_qspi_poll_sr2_set(aq, QSPI_SR2_DLOCK))) {
+	if (!aq->caps->fpga &&
+	    (ret = atmel_qspi_poll_sr2_set(aq, QSPI_SR2_DLOCK))) {
 		dev_err(aq->dev, "QSPI_SR2_DLOCK not set\n");
 		return ret;
 	}
@@ -1249,6 +1259,13 @@ static const struct atmel_qspi_caps mchp_lan966x_qspi_caps = {
 	.has_lan966x = true,
 };
 
+static const struct atmel_qspi_caps mchp_sunrise_qspi_caps = {
+	.has_gclk = true,
+	.has_ricr = true,
+	.has_lan966x = true,
+	.fpga = true,
+};
+
 static const struct udevice_id atmel_qspi_ids[] = {
 	{
 		.compatible = "atmel,sama5d2-qspi",
@@ -1269,6 +1286,14 @@ static const struct udevice_id atmel_qspi_ids[] = {
 	{
 		.compatible = "microchip,lan966x-qspi",
 		.data = (ulong)&mchp_lan966x_qspi_caps,
+	},
+	{
+		.compatible = "microchip,lan969x-qspi",
+		.data = (ulong)&mchp_lan966x_qspi_caps,
+	},
+	{
+		.compatible = "microchip,sunrise-qspi",
+		.data = (ulong)&mchp_sunrise_qspi_caps,
 	},
 	{ /* sentinel */ }
 };
