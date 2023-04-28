@@ -10,6 +10,10 @@
 	};
 };
 
+&qspi {
+	compatible = "microchip,sunrise-qspi";
+};
+
 &uart0 {
 	status = "okay";
 	pinctrl-0 = <&fc0_pins>;
