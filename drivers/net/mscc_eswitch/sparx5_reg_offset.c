@@ -15,6 +15,22 @@ const unsigned int sparx5_reg_addr[RA_LAST] = {
 	[RA_CPU_PROC_CTRL] = 176,
 	[RA_GCB_SOFT_RST] = 8,
 	[RA_GCB_HW_SGPIO_TO_SD_MAP_CFG] = 24,
+	[RA_GCB_GPIO_OUT_CLR] = 8,
+	[RA_GCB_GPIO_OUT_CLR1] = 12,
+	[RA_GCB_GPIO_OUT] = 16,
+	[RA_GCB_GPIO_OUT1] = 20,
+	[RA_GCB_GPIO_IN] = 24,
+	[RA_GCB_GPIO_IN1] = 28,
+	[RA_GCB_GPIO_OE] = 32,
+	[RA_GCB_GPIO_OE1] = 36,
+	[RA_GCB_GPIO_INTR] = 40,
+	[RA_GCB_GPIO_INTR1] = 44,
+	[RA_GCB_GPIO_INTR_ENA] = 48,
+	[RA_GCB_GPIO_INTR_ENA1] = 52,
+	[RA_GCB_GPIO_INTR_IDENT] = 56,
+	[RA_GCB_GPIO_INTR_IDENT1] = 60,
+	[RA_GCB_GPIO_ALT] = 64,
+	[RA_GCB_GPIO_ALT1] = 72,
 };
 
 const unsigned int sparx5_reg_cnt[RC_LAST] = {
@@ -96,6 +112,7 @@ const unsigned int sparx5_reggrp_addr[GA_LAST] = {
 	[GA_EACL_POL_CFG] = 150608,
 	[GA_EACL_ES2_STICKY] = 118696,
 	[GA_EACL_RAM_CTRL] = 118736,
+	[GA_GCB_GPIO] = 480,
 	[GA_GCB_SIO_CTRL] = 876,
 	[GA_HSCH_HSCH_L0_CFG] = 163840,
 	[GA_HSCH_HSCH_DWRR] = 162816,
@@ -159,6 +176,7 @@ const unsigned int sparx5_reggrp_sz[GW_LAST] = {
 	[GW_HSCH_TAS_CONFIG] = 12,  [GW_HSCH_TAS_PROFILE_CFG] = 64,
 	[GW_HSCH_TAS_GCL_CFG] = 8,  [GW_PTP_PHASE_DETECTOR_CTRL] = 8,
 	[GW_QSYS_PAUSE_CFG] = 1128,
+	[GW_GCB_GPIO] = 208,
 };
 
 const unsigned int lan969x_regfield_addr[FIELD_LAST] = {
@@ -170,6 +188,22 @@ const unsigned int lan969x_reg_addr[RA_LAST] = {
 	[RA_CPU_PROC_CTRL] = 160,
 	[RA_GCB_SOFT_RST] = 12,
 	[RA_GCB_HW_SGPIO_TO_SD_MAP_CFG] = 20,
+	[RA_GCB_GPIO_OUT_CLR] = 12,
+	[RA_GCB_GPIO_OUT_CLR1] = 16,
+	[RA_GCB_GPIO_OUT] = 24,
+	[RA_GCB_GPIO_OUT1] = 28,
+	[RA_GCB_GPIO_IN] = 36,
+	[RA_GCB_GPIO_IN1] = 40,
+	[RA_GCB_GPIO_OE] = 48,
+	[RA_GCB_GPIO_OE1] = 52,
+	[RA_GCB_GPIO_INTR] = 60,
+	[RA_GCB_GPIO_INTR1] = 64,
+	[RA_GCB_GPIO_INTR_ENA] = 72,
+	[RA_GCB_GPIO_INTR_ENA1] = 76,
+	[RA_GCB_GPIO_INTR_IDENT] = 84,
+	[RA_GCB_GPIO_INTR_IDENT1] = 88,
+	[RA_GCB_GPIO_ALT] = 96,
+	[RA_GCB_GPIO_ALT1] = 108,
 };
 
 const unsigned int lan969x_reg_cnt[RC_LAST] = {
@@ -251,6 +285,7 @@ const unsigned int lan969x_reggrp_addr[GA_LAST] = {
 	[GA_EACL_POL_CFG] = 38400,
 	[GA_EACL_ES2_STICKY] = 29072,
 	[GA_EACL_RAM_CTRL] = 29112,
+	[GA_GCB_GPIO] = 212,
 	[GA_GCB_SIO_CTRL] = 560,
 	[GA_HSCH_HSCH_L0_CFG] = 40960,
 	[GA_HSCH_HSCH_DWRR] = 36480,
@@ -314,4 +349,5 @@ const unsigned int lan969x_reggrp_sz[GW_LAST] = {
 	[GW_HSCH_TAS_CONFIG] = 16,  [GW_HSCH_TAS_PROFILE_CFG] = 68,
 	[GW_HSCH_TAS_GCL_CFG] = 16, [GW_PTP_PHASE_DETECTOR_CTRL] = 12,
 	[GW_QSYS_PAUSE_CFG] = 988,
+	[GW_GCB_GPIO] = 212,
 };

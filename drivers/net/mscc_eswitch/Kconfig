@@ -58,3 +58,10 @@ config MSCC_LAN966X_SWITCH
 	select PHYLIB
 	help
 	  This driver supports the LAN966x network switch device.
+
+config MSCC_LAN969X_SWITCH
+	bool "LAN966X switch driver"
+	depends on DM_ETH && TARGET_LAN969X
+	select PHYLIB
+	help
+	  This driver supports the LAN969X network switch device.

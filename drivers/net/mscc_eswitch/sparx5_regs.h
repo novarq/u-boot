@@ -590,3 +590,35 @@
 	FIELD_PREP(DEVRGMII_MAC_ENA_CFG_TX_ENA, x)
 #define DEVRGMII_MAC_ENA_CFG_TX_ENA_GET(x)\
 	FIELD_GET(DEVRGMII_MAC_ENA_CFG_TX_ENA, x)
+
+/* DEVCPU_GCB:SIO_CTRL:SIO_CFG */
+#define GCB_SIO_CFG(g)                                                      \
+	__REG(TARGET_GCB, 0, 1, GRP_ADDR(GA_GCB_SIO_CTRL), g, GRP_CNT(GC_GCB_SIO_CTRL), 280, 16, 0, 1, 4)
+
+/* DEVCPU_GCB:SIO_CTRL:SIO_CLOCK */
+#define GCB_SIO_CLOCK(g)                                                    \
+	__REG(TARGET_GCB, 0, 1, GRP_ADDR(GA_GCB_SIO_CTRL), g, GRP_CNT(GC_GCB_SIO_CTRL), 280, 20, 0, 1, 4)
+
+/* DEVCPU_GCB:SIO_CTRL:SIO_PORT_ENA */
+#define GCB_SIO_PORT_ENA(g)                                                 \
+	__REG(TARGET_GCB, 0, 1, GRP_ADDR(GA_GCB_SIO_CTRL), g, GRP_CNT(GC_GCB_SIO_CTRL), 280, 152, 0, 1, 4)
+
+/* DEVCPU_GCB:SIO_CTRL:SIO_INTR_POL */
+#define GCB_SIO_INTR_POL(g, r)                                              \
+	__REG(TARGET_GCB, 0, 1, GRP_ADDR(GA_GCB_SIO_CTRL), g, GRP_CNT(GC_GCB_SIO_CTRL), 280, 168, r, 4, 4)
+
+/* DEVCPU_GCB:SIO_CTRL:SIO_PORT_CFG */
+#define GCB_SIO_PORT_CFG(g, r)                                              \
+	__REG(TARGET_GCB, 0, 1, GRP_ADDR(GA_GCB_SIO_CTRL), g, GRP_CNT(GC_GCB_SIO_CTRL), 280, 24, r, 32, 4)
+
+/* DEVCPU_GCB:GPIO:GPIO_OE */
+#define GCB_GPIO_OE                                                         \
+	__REG(TARGET_GCB, 0, 1, GRP_ADDR(GA_GCB_GPIO), 0, 1, GRP_SIZE(GW_GCB_GPIO), REG_ADDR(RA_GCB_GPIO_OE), 0, 1, 4)
+
+/* DEVCPU_GCB:GPIO:GPIO_OUT_CLR */
+#define GCB_GPIO_OUT_CLR                                                    \
+	__REG(TARGET_GCB, 0, 1, GRP_ADDR(GA_GCB_GPIO), 0, 1, GRP_SIZE(GW_GCB_GPIO), REG_ADDR(RA_GCB_GPIO_OUT_CLR), 0, 1, 4)
+
+/* DEVCPU_GCB:GPIO:GPIO_OUT_SET */
+#define GCB_GPIO_OUT_SET                                                    \
+	__REG(TARGET_GCB, 0, 1, GRP_ADDR(GA_GCB_GPIO), 0, 1, GRP_SIZE(GW_GCB_GPIO), 0, 0, 1, 4)
