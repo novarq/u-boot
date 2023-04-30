@@ -3,6 +3,8 @@
 #include "lan969x_a0.dtsi"
 #include "lan969x.dtsi"
 
+#include <dt-bindings/mscc/sparx5_data.h>
+
 / {
 	model = "lan969x UNG8398 EVB";
 	config {
@@ -34,5 +36,32 @@
 		reg = <0>;
 		spi-max-frequency = <104000000>;
 		u-boot,dm-pre-reloc;
+	};
+};
+
+&gpio {
+	mdio_pins: mdio-pins {
+		pins = "GPIO_9", "GPIO_10";
+		function = "miim";
+	};
+};
+
+&mdio0 {
+	pinctrl-0 = <&mdio_pins>;
+	pinctrl-names = "default";
+
+	phy3: phy@3 {
+		reg = <3>;
+	};
+};
+
+&switch {
+	status = "okay";
+	ethernet-ports {
+		port28: port@28 {
+			reg = <28>;
+			phy-handle = <&phy3>;
+			phys = <IF_RGMII>;
+		};
 	};
 };
