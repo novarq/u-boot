@@ -1523,6 +1523,18 @@ config TARGET_HIKEY960
 	  Support for HiKey960 96boards platform. It features a HI3660
 	  SoC, with 4xA73 CPU, 4xA53 CPU, MALI-G71 GPU, and 3GB RAM.
 
+config TARGET_LAN966X
+	bool "Support Microchip LAN966X platform"
+	select DM
+	select DM_SERIAL
+	select OF_CONTROL
+	select CPU_V7A
+	select BOARD_LATE_INIT
+	imply CMD_DM
+	  help
+	  Support for Microchip LAN966X reference board platform. It supports
+	  2Gb DDR, and a A7 core.
+
 config TARGET_POPLAR
 	bool "Support Poplar 96boards Enterprise Edition Platform"
 	select ARM64
@@ -2376,6 +2388,7 @@ source "board/hisilicon/hikey960/Kconfig"
 source "board/hisilicon/poplar/Kconfig"
 source "board/isee/igep003x/Kconfig"
 source "board/kontron/sl28/Kconfig"
+source "board/microchip/lan966x/Kconfig"
 source "board/mscc/sparx5/Kconfig"
 source "board/myir/mys_6ulx/Kconfig"
 source "board/samsung/common/Kconfig"

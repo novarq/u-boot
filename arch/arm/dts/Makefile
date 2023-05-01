@@ -355,6 +355,12 @@ dtb-$(CONFIG_TARGET_SPARX5) += \
         sparx5_pcb134_emmc.dtb \
         sparx5_pcb135_nand.dtb \
         sparx5_pcb135_emmc.dtb
+dtb-$(CONFIG_TARGET_LAN966X) += \
+	lan966x_pcb8291.dtb \
+	lan966x_pcb8290.dtb \
+	lan966x_pcb8281.dtb \
+	lan966x_pcb8281_rgmii.dtb \
+	lan966x_pcb8385.dtb
 dtb-$(CONFIG_ARCH_UNIPHIER_LD11) += \
 	uniphier-ld11-global.dtb \
 	uniphier-ld11-ref.dtb
