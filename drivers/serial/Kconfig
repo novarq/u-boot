@@ -1076,6 +1076,14 @@ config MTK_SERIAL
 	  The High-speed UART is compatible with the ns16550a UART and have
 	  its own high-speed registers.
 
+config LAN966X_SERIAL
+	bool "Lan966x UART support"
+	depends on DM_SERIAL
+	help
+	  Select this to enable UART support for Lan966x UART devices.
+	  This driver uses driver model and requires a device
+	  tree binding to operate.
+
 config MT7620_SERIAL
 	bool "UART driver for MediaTek MT7620 and earlier SoCs"
 	depends on DM_SERIAL
