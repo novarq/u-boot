@@ -114,6 +114,19 @@ static int do_mem_md(struct cmd_tbl *cmdtp, int flag, int argc,
 	return (rc);
 }
 
+static int __noreturn do_mem_mj(struct cmd_tbl *cmdtp, int flag, int argc,
+				char * const argv[])
+{
+	typedef void __noreturn (*image_entry_noargs_t)(void);
+	ulong addr;
+
+	addr = simple_strtoul(argv[1], NULL, 16);
+
+	image_entry_noargs_t entry = (image_entry_noargs_t)addr;
+	cleanup_before_linux();
+	entry();
+}
+
 static int do_mem_mm(struct cmd_tbl *cmdtp, int flag, int argc,
 		     char *const argv[])
 {
@@ -1316,6 +1329,11 @@ U_BOOT_CMD(
 	"[.b, .w, .l" HELP_Q "] address [# of objects]"
 );
 
+U_BOOT_CMD(
+	mj,	2,	1,	do_mem_mj,
+	"memory jump",
+	"address"
+);
 
 U_BOOT_CMD(
 	mm,	2,	1,	do_mem_mm,
