@@ -25,7 +25,6 @@
 };
 
 &switch {
-	mscc,pcb = <135>;
 	status = "okay";
 	ethernet-ports {
 		port4: port@64 {
