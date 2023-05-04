@@ -65,6 +65,16 @@
 #define MIIM_VSC8664_EPHY_CON		0x17
 #define MIIM_VSC8664_LED_CON		0x1E
 
+/* Vitesse VSC8211 Extended Control Register 1 */
+#define MIIM_VSC8211_EXT_CONT1		0x17
+/* Setup skew and RX idle clock, datasheet table 36.
+ * 15:12 - AC/Media Interface Mode Select:
+ * SGMII CAT5:
+ * Modified Clause 37 auto-negotiation disabled,
+ * 625MHz SCLK Clock Disabled
+ */
+#define MIIM_VSC8211_EXTCON1_SGMII	0xba20
+
 #define PHY_EXT_PAGE_ACCESS_EXTENDED	0x0001
 
 /* CIS8201 */
@@ -74,8 +84,12 @@ static int vitesse_config(struct phy_device *phydev)
 	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_CIS82xx_AUX_CONSTAT,
 			MIIM_CIS82xx_AUXCONSTAT_INIT);
 	/* Set up the interface mode */
-	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_CIS82xx_EXT_CON1,
-			MIIM_CIS8201_EXTCON1_INIT);
+	if (phydev->interface == PHY_INTERFACE_MODE_SGMII)
+		phy_write(phydev, MDIO_DEVAD_NONE, MIIM_VSC8211_EXT_CONT1,
+			  MIIM_VSC8211_EXTCON1_SGMII);
+	else
+		phy_write(phydev, MDIO_DEVAD_NONE, MIIM_CIS82xx_EXT_CON1,
+			  MIIM_CIS8201_EXTCON1_INIT);
 
 	genphy_config_aneg(phydev);
 
