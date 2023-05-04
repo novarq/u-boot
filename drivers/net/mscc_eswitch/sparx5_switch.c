@@ -823,12 +823,12 @@ static int sparx5_probe(struct udevice *dev)
 			addr_size = resource_size(&res);
 
 			/* If the bus is new then create a new bus */
-			if (!sparx5_get_mdiobus(priv, addr_base, addr_size))
-				priv->bus[miim_count] =
-					mscc_mdiobus_init(priv->miim, &miim_count, addr_base,
-							  addr_size);
-			//mscc_mdiobus_pinctrl_apply(mdio_node);
-
+			if (!sparx5_get_mdiobus(priv, addr_base, addr_size)) {
+				bus = mscc_mdiobus_init(priv->miim, &miim_count,
+							addr_base, addr_size);
+				priv->bus[miim_count - 1] = bus;
+				mscc_mdiobus_pinctrl_apply(mdio_node);
+			}
 		} else {
 			bus = NULL;
 			phy_addr = -1;

@@ -3,6 +3,9 @@
  * Copyright (c) 2018 Microsemi Corporation
  */
 
+#include <linux/io.h>
+#include <dm.h>
+#include <dm/pinctrl.h>
 #include <miiphy.h>
 #include <wait_bit.h>
 #include <linux/bitops.h>
@@ -101,4 +104,50 @@ struct mii_dev *mscc_mdiobus_init(struct mscc_miim_dev *miim, int *miim_count,
 
 	miim[*miim_count].bus = bus;
 	return bus;
+}
+
+static int mscc_mdiobus_pinctrl_config_one(struct udevice *config)
+{
+	struct udevice *pctldev;
+	const struct pinctrl_ops *ops;
+
+	pctldev = config;
+	for (;;) {
+		pctldev = dev_get_parent(pctldev);
+		if (!pctldev) {
+			return -EINVAL;
+		}
+		if (pctldev->uclass->uc_drv->id == UCLASS_PINCTRL)
+			break;
+	}
+
+	ops = pinctrl_get_ops(pctldev);
+	return ops->set_state(pctldev, config);
+}
+
+int mscc_mdiobus_pinctrl_apply(ofnode miim_node)
+{
+	const fdt32_t *list;
+	uint32_t phandle;
+	struct udevice *config;
+	int size, i, ret;
+
+	list = ofnode_get_property(miim_node, "pinctrl-0", &size);
+	if (!list)
+		return -EINVAL;
+
+	size /= sizeof(*list);
+	for (i = 0; i < size; i++) {
+		phandle = fdt32_to_cpu(*list++);
+		ret = uclass_get_device_by_phandle_id(UCLASS_PINCONFIG, phandle,
+						      &config);
+		if (ret)
+			return ret;
+
+		ret = mscc_mdiobus_pinctrl_config_one(config);
+		if (ret)
+			return ret;
+	}
+
+	return 0;
 }
