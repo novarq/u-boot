@@ -97,12 +97,6 @@ enum {
 };
 
 enum {
-	SPARX5_PCB_UNKNOWN,
-	SPARX5_PCB_134 = 134,
-	SPARX5_PCB_135 = 135,
-};
-
-enum {
 	SPARX5_TARGET,
 };
 
@@ -165,8 +159,6 @@ struct sparx5_private {
 	struct mii_dev **bus;
 	struct mscc_miim_dev *miim;
 	struct sparx5_phy_port *ports;
-
-	u32 pcb;
 };
 
 /* Keep the id, tinst and tcnt just to be able to use the same macros
@@ -647,6 +639,7 @@ static int sparx5_start(struct udevice *dev)
 			continue;
 
 		/* Start up the PHY */
+		phy_config(phy);
 		ret = phy_startup(phy);
 		if (ret) {
 			printf("Could not initialize PHY %s (port %d)\n",
@@ -731,6 +724,19 @@ static struct mii_dev *sparx5_get_mdiobus(struct sparx5_private *priv,
 	return NULL;
 }
 
+static phy_interface_t sparx5_mac_to_phy_interface(u32 mac_type)
+{
+	switch (mac_type) {
+	case IF_SGMII:
+	case IF_SGMII_CISCO:
+		return PHY_INTERFACE_MODE_SGMII;
+	case IF_QSGMII:
+		return PHY_INTERFACE_MODE_QSGMII;
+	default:
+		return PHY_INTERFACE_MODE_NA;
+	};
+}
+
 static int sparx5_probe(struct udevice *dev)
 {
 	u32 serdes_args[SERDES_ARG_MAX];
@@ -753,9 +759,6 @@ static int sparx5_probe(struct udevice *dev)
 	priv->data = (struct mscc_match_data*)dev_get_driver_data(dev);
 	if (!priv->data)
 		return -EINVAL;
-
-	if (dev_read_u32(dev, "mscc,pcb", &priv->pcb))
-		priv->pcb = SPARX5_PCB_UNKNOWN;
 
 	/* Allocate the resources dynamically */
 	priv->regs = devm_kzalloc(dev,
@@ -869,22 +872,9 @@ static int sparx5_probe(struct udevice *dev)
 
 		phy = phy_connect(priv->ports[i].bus,
 				  priv->ports[i].phy_addr, dev,
-				  PHY_INTERFACE_MODE_NA);
-		if (phy) {
+				  sparx5_mac_to_phy_interface(priv->ports[i].mac_type));
+		if (phy)
 			priv->ports[i].phy = phy;
-
-			if (i == priv->data->npi_port) {
-				board_phy_config(phy);
-			} else {
-				if (priv->pcb == SPARX5_PCB_135) {
-					/* configure Indy phy (into QSGMII mode). Elise phy not supported */
-					phy_write(phy, 0, 0x16, 5);
-					phy_write(phy, 0, 0x17, 0x13);
-					phy_write(phy, 0, 0x16, 0x4005);
-					phy_write(phy, 0, 0x17, 0x20);
-				}
-			}
-		}
 	}
 
 	dev_priv = priv;

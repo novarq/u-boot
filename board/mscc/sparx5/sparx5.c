@@ -72,28 +72,6 @@ void reset_cpu(void)
 	writel(GCB_SOFT_RST_SOFT_CHIP_RST_M, GCB_SOFT_RST(SPARX5_GCB_BASE));
 }
 
-int board_phy_config(struct phy_device *phydev)
-{
-	if (gd->board_type == BOARD_TYPE_PCB134 ||
-	    gd->board_type == BOARD_TYPE_PCB135) {
-		debug("board_phy_config: phy_write(SGMII/CAT5)\n");
-		/* reg 23 - PHY Control Register #1 */
-		/* Setup skew and RX idle clock, datasheet table 36. */
-		/* 15:12 - AC/Media Interface Mode Select:
-		 * SGMII CAT5:
-		 * Modified Clause 37 auto-negotiation disabled,
-		 * 625MHz SCLK Clock Disabled
-		 */
-		phy_write(phydev, 0, 23, 0xba20); /* Set SGMII mode */
-		phy_write(phydev, 0,  0, 0x9040); /* Reset */
-		phy_write(phydev, 0,  4, 0x0de1); /* Setup ANEG */
-		phy_write(phydev, 0,  9, 0x0200); /* Setup ANEG */
-		phy_write(phydev, 0,  0, 0x1240); /* Restart ANEG */
-	}
-
-	return 0;
-}
-
 static inline void mscc_gpio_set_alternate_0(int gpio, int mode)
 {
 	u32 mask = BIT(gpio);
