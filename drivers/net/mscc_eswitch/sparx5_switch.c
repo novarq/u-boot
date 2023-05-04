@@ -25,8 +25,6 @@
 #include "mscc_xfer.h"
 #include "mscc_miim.h"
 
-#include "mscc_sparx5_regs_devcpu_gcb.h"
-
 #include <dt-bindings/mscc/sparx5_data.h>
 
 static struct sparx5_private *dev_priv;
@@ -328,19 +326,6 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 		}
 	}
 
-	if (priv->pcb == SPARX5_PCB_134) {
-		/* SGPIO HACK */
-		writel(0x00060051, MSCC_DEVCPU_GCB_SIO_CFG(2));
-		writel(0x00001410, MSCC_DEVCPU_GCB_SIO_CLOCK(2));
-		writel(0xfffff000, MSCC_DEVCPU_GCB_SIO_PORT_ENA(2));
-		writel(0x00000fff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 0));
-		writel(0xffffffff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 1));
-		writel(0x00000fff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 2));
-		writel(0xffffffff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 3));
-		for (i = 12; i < 32; i++)
-			writel(0x00049000, MSCC_DEVCPU_GCB_SIO_PORT_CFG(2, i));
-	}
-
 	/* BCAST/CPU pgid */
 	if (priv->data->target == SPARX5_TARGET) {
 		spx5_wr(0xffffffff, priv, ANA_AC_PGID_CFG(PGID_BROADCAST(priv)));
@@ -608,6 +593,7 @@ static int sparx5_initialize(struct sparx5_private *priv)
 	if (ret)
 		return ret;
 
+	board_init();
 	sparx5_switch_config(priv);
 
 	for (i = 0; i < priv->data->num_ports; i++)
@@ -873,13 +859,6 @@ static int sparx5_probe(struct udevice *dev)
 		      __func__, i, bus ? bus->name : "(none)", phy_addr,
 		      priv->ports[i].serdes_type == FA_SERDES_TYPE_6G ? "6g" : "10g",
 		      priv->ports[i].serdes_index);
-	}
-
-	if (priv->pcb == SPARX5_PCB_135) {
-		// Take pcb135 out of reset
-		writel(0x83000, MSCC_DEVCPU_GCB_GPIO_OE);
-		writel(0x80000, MSCC_DEVCPU_GCB_GPIO_OUT_CLR);
-		writel(0x80000, MSCC_DEVCPU_GCB_GPIO_OUT_SET);
 	}
 
 	for (i = 0; i < priv->data->num_ports; i++) {

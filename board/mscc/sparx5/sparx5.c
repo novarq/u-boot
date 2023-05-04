@@ -16,6 +16,8 @@
 
 #include <sparx5_regs.h>
 
+#include "mscc_sparx5_regs_devcpu_gcb.h"
+
 #if !defined(CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK)
 #error "Sorry, we need this"
 #endif
@@ -388,10 +390,33 @@ int embedded_dtb_select(void)
 
 int board_init(void)
 {
+	int i;
+
 	debug("Board init\n");
 
 	/* CS0 alone on boot master region 0 - SPI NOR flash */
 	writel((u16)~BIT(0), GCB_SPI_MASTER_SS0_MASK(SPARX5_GCB_BASE));
+
+	switch (gd->board_type) {
+	case BOARD_TYPE_PCB135:
+		// Take pcb135 out of reset
+		writel(0x83000, MSCC_DEVCPU_GCB_GPIO_OE);
+		writel(0x80000, MSCC_DEVCPU_GCB_GPIO_OUT_CLR);
+		writel(0x80000, MSCC_DEVCPU_GCB_GPIO_OUT_SET);
+		break;
+	case BOARD_TYPE_PCB134:
+		writel(0x00060051, MSCC_DEVCPU_GCB_SIO_CFG(2));
+		writel(0x00001410, MSCC_DEVCPU_GCB_SIO_CLOCK(2));
+		writel(0xfffff000, MSCC_DEVCPU_GCB_SIO_PORT_ENA(2));
+		writel(0x00000fff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 0));
+		writel(0xffffffff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 1));
+		writel(0x00000fff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 2));
+		writel(0xffffffff, MSCC_DEVCPU_GCB_SIO_INTR_POL(2, 3));
+		for (i = 12; i < 32; i++)
+			writel(0x00049000, MSCC_DEVCPU_GCB_SIO_PORT_CFG(2, i));
+
+		break;
+	}
 
 	return 0;
 }
