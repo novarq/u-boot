@@ -50,4 +50,6 @@
 
 #define CFG_SYS_BOOTMAPSZ	SZ_64M	/* Initial map for Linux*/
 
+#define PHY_ANEG_TIMEOUT		20000
+
 #endif	/* __INCL_INCLUDE_CONFIGS_SPARX5__ */
