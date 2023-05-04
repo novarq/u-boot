@@ -77,7 +77,7 @@ static int lan8814_config(struct phy_device *phydev)
 	val &= ~LAN8814_QSGMII_AUTO_ANEG_AUTO_ANEG_ENA;
 	lan8814_write_page_reg(phydev, 4, LAN8814_QSGMII_AUTO_ANEG, val);
 
-	return 0;
+	return genphy_config(phydev);
 }
 
 static int lan8804_config(struct phy_device *phydev)
@@ -91,7 +91,7 @@ static int lan8804_config(struct phy_device *phydev)
 	lan8814_write_page_reg(phydev, 2, LAN8814_ALIGN_SWAP, val);
 
 	phy_write(phydev, 0, LAN8814_CONTROL, LAN8814_CONTROL_POLARITY);
-	return 0;
+	return genphy_config(phydev);
 }
 
 U_BOOT_PHY_DRIVER(lan8814_driver) = {
