@@ -6,6 +6,8 @@
 #ifndef _MSCC_MIIM_H_
 #define _MSCC_MIIM_H_
 
+#include <dm/ofnode_decl.h>
+
 struct mscc_miim_dev {
 	void __iomem *regs;
 	phys_addr_t miim_base;
