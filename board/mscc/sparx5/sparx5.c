@@ -13,6 +13,7 @@
 #include <spi.h>
 #include <asm/sections.h>
 #include <linux/delay.h>
+#include <linux/bitfield.h>
 
 #include <sparx5_regs.h>
 
@@ -193,6 +194,9 @@ void enable_caches(void)
 #if defined(CONFIG_ARCH_MISC_INIT)
 int arch_misc_init(void)
 {
+	int val;
+	uintptr_t lcpll = SPARX5_LCPLL28_1_BASE;
+
 #if defined(CONFIG_ARMV8_MULTIENTRY)
 	u64 r_start = (u64)_start;
 
@@ -204,6 +208,34 @@ int arch_misc_init(void)
 	      readl(CPU_CPU1_RVBAR_LSB(SPARX5_CPU_BASE)));
 	clrbits_le32(CPU_RESET(SPARX5_CPU_BASE), CPU_RESET_CPU_CORE_1_COLD_RST(1));
 #endif
+
+	/* Enable DPLL fractional mode */
+	val = readl(LCPLL28_LCPLL_CONFIG2(lcpll));
+	if (FIELD_GET(LCPLL28_LCPLL_CONFIG2_F_M, val) == 0) {
+		val = readl(GCB_HW_STAT(SPARX5_GCB_BASE));
+
+		switch (FIELD_GET(GCB_HW_STAT_PLL0_CONF_M, val)) {
+		case 0: val = 80;  break;  /* 125Mhz   */
+		case 1: val = 64;  break;  /* 156.2Mhz */
+		case 4: val = 400; break;  /* 25Mhz    */
+		default:
+			printf("PLL0 value not supported");
+			return -ENOTSUPP;
+		}
+
+		/* Configure F(x) + R(511) + PDSIG(0) */
+		clrsetbits_le32(LCPLL28_LCPLL_CONFIG2(lcpll),
+				LCPLL28_LCPLL_CONFIG2_F_M,
+				LCPLL28_LCPLL_CONFIG2_F(val));
+
+		clrsetbits_le32(LCPLL28_LCPLL_CONFIG3(lcpll),
+				LCPLL28_LCPLL_CONFIG3_R_M,
+				LCPLL28_LCPLL_CONFIG3_R(511));
+
+		clrbits_le32(LCPLL28_LCPLL_CONFIG3(lcpll),
+			     LCPLL28_LCPLL_CONFIG3_PDSIG_M);
+	}
+
 	return 0;
 }
 #endif
