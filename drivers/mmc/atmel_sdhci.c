@@ -15,7 +15,7 @@
 #define ATMEL_SDHC_MIN_FREQ	400000
 #define ATMEL_SDHC_GCK_RATE	240000000
 #define LAN966X_GCK_RATE	30000000
-#define USE_DT			0
+#define LAN969X_GCK_RATE	100000000
 
 #define ATMEL_SDHC_MC1R 0x204
 #define ATMEL_SDHC_MC1R_FCD	0x80
@@ -123,8 +123,7 @@ static int atmel_sdhci_probe(struct udevice *dev)
 	if (ret)
 		return ret;
 
-	if (gck_rate != USE_DT)
-		clk_set_rate(&clk, gck_rate);
+	clk_set_rate(&clk, gck_rate);
 
 	max_clk = clk_get_rate(&clk);
 	if (!max_clk)
@@ -179,7 +178,7 @@ static const struct udevice_id atmel_sdhci_ids[] = {
 	{ .compatible = "microchip,sam9x60-sdhci", .data = ATMEL_SDHC_GCK_RATE },
 	{ .compatible = "microchip,sama7g5-sdhci", .data = ATMEL_SDHC_GCK_RATE },
 	{ .compatible = "microchip,lan966x-sdhci", .data = LAN966X_GCK_RATE },
-	{ .compatible = "microchip,lan969x-sdhci", .data = USE_DT },
+	{ .compatible = "microchip,lan969x-sdhci", .data = LAN969X_GCK_RATE },
 	{ }
 };
 
