@@ -34,6 +34,7 @@ enum {
 	FUNC_EMMC_SD,
 	FUNC_FC,
 	FUNC_GPIO,
+	FUNC_MIIM,
 	FUNC_NONE,
 	FUNC_R,
 	FUNC_MAX
@@ -43,6 +44,7 @@ static const char *const lan969x_function_names[FUNC_MAX] = {
 	[FUNC_EMMC_SD]		= "emmc_sd",
 	[FUNC_FC]               = "fc",
 	[FUNC_GPIO]		= "gpio",
+	[FUNC_MIIM]		= "miim",
 	[FUNC_NONE]		= "none",
 	[FUNC_R]		= "reserved",
 };
@@ -98,8 +100,8 @@ LAN969X_P(5,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NON
 LAN969X_P(6,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
 LAN969X_P(7,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
 LAN969X_P(8,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(9,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(10,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
+LAN969X_P(9,    GPIO,    MIIM,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
+LAN969X_P(10,   GPIO,    MIIM,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
 LAN969X_P(11,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
 LAN969X_P(12,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
 LAN969X_P(13,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
