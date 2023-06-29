@@ -194,8 +194,42 @@ int embedded_dtb_select(void)
 }
 #endif
 
+static int lan969x_pcb8398_board_init(void)
+{
+	u32 val;
+
+	/* Release the reset of the PHYs, for the lan8814 PHYs.
+	 * For the lan8840 PHY, it gets out of reset when chip gets out
+	 * of reset
+	 */
+	val = in_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 0));
+	val &= ~BIT(62 - 32);
+	out_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 0), val);
+
+	val = in_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 1));
+	val &= ~BIT(62 - 32);
+	out_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 1), val);
+
+	val = in_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 2));
+	val &= ~BIT(62 - 32);
+	out_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 2), val);
+
+	val = in_le32(GCB_GPIO_OE1(LAN969X_GCB_BASE));
+	val |= BIT(62 - 32);
+	out_le32(GCB_GPIO_OE1(LAN969X_GCB_BASE), val);
+
+	val = in_le32(GCB_GPIO_OUT_SET1(LAN969X_GCB_BASE));
+	val |= BIT(62 - 32);
+	out_le32(GCB_GPIO_OUT_SET1(LAN969X_GCB_BASE), val);
+
+	return 0;
+}
+
 int board_init(void)
 {
+	if (gd->board_type == BOARD_TYPE_PCB8398)
+		return lan969x_pcb8398_board_init();
+
 	return 0;
 }
 
