@@ -26,6 +26,7 @@
 	status = "okay";
 	pinctrl-0 = <&emmc_sd_pins>;
 	pinctrl-names = "default";
+	bus-width = <8>;
 };
 
 &qspi {
