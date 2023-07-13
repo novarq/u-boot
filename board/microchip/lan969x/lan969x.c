@@ -235,6 +235,15 @@ int board_init(void)
 
 int board_late_init(void)
 {
+	if (!env_get("pcb")) {
+		if (gd->board_type == BOARD_TYPE_PCB8398)
+			env_set("pcb", "lan9698_ung8398_0_at_lan969x");
+		if (gd->board_type == BOARD_TYPE_PCB8422)
+			env_set("pcb", "lan9664_ung8422_0_at_lan969x");
+		if (gd->board_type == BOARD_TYPE_SUNRISE)
+			env_set("pcb", "lan9664_sunrise_0_at_lan969x");
+	}
+
 	return 0;
 }
 
