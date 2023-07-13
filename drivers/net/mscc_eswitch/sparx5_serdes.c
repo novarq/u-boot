@@ -30,7 +30,14 @@
 #define VTSS_ANT_CMU_MAX          14
 #define VTSS_ANT_SERDES_MAX       33
 
+#ifdef CONFIG_MSCC_SPARX5_SWITCH
 #define VTSS_ANT_SERDES_25G_START 25
+#define VTSS_SERDES_10G_START     13
+#endif
+#ifdef CONFIG_MSCC_LAN969X_SWITCH
+#define VTSS_ANT_SERDES_25G_START 25
+#define VTSS_SERDES_10G_START     0
+#endif
 
 /* Optimal power settings from GUC */
 #define VTSS_ANT_SERDES_QUIET_MODE_VAL  0x01ef4e0c
@@ -127,7 +134,7 @@ static int vtss_ant_serdes_power_off(int sidx)
 {
 	void *sd_lane_tgt;
 
-	if (sidx < VTSS_SERDES_25G_START) {
+	if (sidx < VTSS_ANT_SERDES_25G_START) {
 		sd_lane_tgt = VTSS_TO_SD_LANE(sidx);
 
 		/* Take serdes out of reset */
@@ -713,10 +720,10 @@ void sparx5_serdes_port_init(int port,
 	debug("Initializing port %d, serdes %d # %d\n",
 	      port, serdes_type, serdes_idx);
 
-		if (serdes_type == FA_SERDES_TYPE_6G)
-			sd_conf = &sgmii_conf;
-		else
-			sd_conf = &qsgmii_conf;
+	if (mac_type == IF_SGMII || mac_type == IF_SGMII_CISCO)
+		sd_conf = &sgmii_conf;
+	else
+		sd_conf = &qsgmii_conf;
 
-		vtss_ant_sd10g28_reg_cfg(sd_conf, port, serdes_type, serdes_idx);
+	vtss_ant_sd10g28_reg_cfg(sd_conf, port, serdes_type, serdes_idx);
 }

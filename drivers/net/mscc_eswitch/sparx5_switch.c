@@ -43,7 +43,7 @@ static const char * const sparx5_reg_names[] = {
 	"ana_ac", "ana_cl", "ana_l2", "ana_l3",
 	"asm", "lrn", "qfwd", "qs",
 	"qsys", "rew", "vop", "dsm", "eacl",
-	"vcap_super", "hsch", "port_conf", "xqs", "hsio", "gcb", "cpu",
+	"vcap_super", "hsch", "port_conf", "xqs", "hsio", "gcb", "cpu", "ptp",
 	"port0", "port1", "port2", "port3", "port4", "port5", "port6",
 	"port7", "port8", "port9", "port10", "port11", "port12", "port13",
 	"port14", "port15", "port16", "port17", "port18", "port19", "port20",
@@ -60,7 +60,7 @@ static const char * const lan969x_reg_names[] = {
 	"ana_ac", "ana_cl", "ana_l2", "ana_l3",
 	"asm", "lrn", "qfwd", "qs",
 	"qsys", "rew", "vop", "dsm", "eacl",
-	"vcap_super", "hsch", "port_conf", "xqs", "hsio", "gcb", "cpu",
+	"vcap_super", "hsch", "port_conf", "xqs", "hsio", "gcb", "cpu", "ptp",
 	"port0", "port1", "port2", "port3", "port4", "port5", "port6",
 	"port7", "port8", "port9", "port10", "port11", "port12", "port13",
 	"port14", "port15", "port16", "port17", "port18", "port19", "port20",
@@ -89,6 +89,7 @@ enum sparx5_ctrl_regs {
 	TARGET_HSIO,
 	TARGET_GCB,
 	TARGET_CPU,
+	TARGET_PTP,
 	__REG_MAX,
 	/* This is used for all the ports even if it a 2.5G or RGMII */
 	TARGET_DEV2G5 = __REG_MAX,
@@ -146,7 +147,7 @@ static struct mscc_match_data mscc_sparx5_data = {
 		.reg_cnt = sparx5_reg_cnt,
 		.regfield_addr = sparx5_regfield_addr,
 	},
-	.num_regs = 85,
+	.num_regs = 86,
 	.num_ports = 65,
 	.num_bus = 4,
 	.cpu_port = 65,
@@ -170,9 +171,9 @@ static struct mscc_match_data mscc_lan969x_data = {
 	.num_ports = 30,
 	.num_bus = 2,
 	.cpu_port = 30,
-	.npi_port = 28,
+	.npi_port = 24,
 	.ifh_len = 9,
-	.num_cal_auto = 7,
+	.num_cal_auto = 4,
 	.target = LAN969X_TARGET,
 };
 
@@ -277,6 +278,347 @@ static int sparx5_switch_init(struct sparx5_private *priv)
 	return 0;
 }
 
+static void sparx5_lan969x_cal_cfg(struct sparx5_private *priv)
+{
+	/* TODO figure out what are these writes, without these the traffic is
+	 * not working
+	 */
+	spx5_wr(0x818014, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x818755, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x800155, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x800001, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x808201, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x808355, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x810555, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x810555, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x818755, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x818755, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x820955, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x820955, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x828b55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x828a23, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x830c23, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x830d55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x841155, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x841155, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x849355, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x849245, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x851445, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x851555, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x859755, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x859755, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x861955, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x861955, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x26cc68, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x26cc66, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x274d46, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x274d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x27cd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x27cd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x284d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x284d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x28cd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x28cd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x294c94, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x294c88, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x29cd48, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x29cd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2a4d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2a4d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2accb4, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2accb4, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2b4c14, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2b4c0a, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2bcd4a, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2bcd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2c4d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2c4d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2ccd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2ccd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2d4cd4, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2d4ccc, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2dcd4c, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2dcd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2e4d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2e4d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2ecd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2ecd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2f4d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2f4d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2fcd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x2fcd4e, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x304c0e, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x304c14, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x30cd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x30cd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x314d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x314d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x31cd14, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x31cd10, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x324d50, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x324d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x32cd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x32cd54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x334d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x334d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x334d54, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0xb34d54, priv, DSM_TAXI_CAL_CFG(0));
+
+	spx5_wr(0x800155, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x800155, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x800155, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x800001, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x808201, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x808355, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x810555, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x810555, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x818755, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x818755, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x820955, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x820955, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x828b55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x828a23, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x830c23, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x830d55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x849355, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x849355, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x851555, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x851445, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x859645, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x859755, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x861955, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x861955, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x869b55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x869b55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x871d55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x871d55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x879f55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x879e67, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x882067, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x882155, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x88a355, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x88a355, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x892555, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x892555, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x89a755, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x89a755, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8a2955, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8a2889, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8aaa89, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8aab55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8b2d55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8b2d55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8baf55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8baf55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8baf55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8baf55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8cb355, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8cb2ab, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8d34ab, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8d3555, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8db755, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8db755, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8e3955, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8e3955, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8ebb55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8ebb55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8f3d55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8f3ccd, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8fbecd, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x8fbf55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x904155, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x904155, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x90c355, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x90c355, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x914555, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x914555, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x91c755, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x91c6ef, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x9248ef, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x924955, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x92cb55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x92cb55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x934d55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x934d55, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x934d54, priv, DSM_TAXI_CAL_CFG(1));
+	spx5_wr(0x134d54, priv, DSM_TAXI_CAL_CFG(1));
+
+	spx5_wr(0x8e8014, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8ebb55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x800155, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x800001, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x808201, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x808355, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x810555, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x810555, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x818755, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x818755, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x820955, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x820955, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x828b55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x828a23, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x830c23, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x830d55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x841155, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x841155, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x849355, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x849355, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x851555, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x851445, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x859645, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x859755, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x861955, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x861955, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x869b55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x869b55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x871d55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x871d55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x879f55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x879e67, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x882067, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x882155, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x88a355, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x88a355, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x892555, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x892555, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x89a755, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x89a755, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8a2955, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8a2889, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8aaa89, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8aab55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8b2d55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8b2d55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8baf55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8baf55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8c3155, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8c3155, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8cb355, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8cb2ab, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8d34ab, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8d3555, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8db755, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8db755, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8e3955, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8e3955, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8ebb55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8ebb55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8f3d55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8f3ccd, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8fbecd, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x8fbf55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x904155, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x904155, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x90c355, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x90c355, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x914555, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x914555, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x91c755, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x91c6ef, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x9248ef, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x924955, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x92cb55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x92cb55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x934d55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x934d55, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x934d54, priv, DSM_TAXI_CAL_CFG(2));
+	spx5_wr(0x134d54, priv, DSM_TAXI_CAL_CFG(2));
+
+	spx5_wr(0x808355, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x808355, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x800155, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x800155, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x808355, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x808201, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x810401, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x810423, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x810423, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x810555, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x820955, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x820801, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x828a01, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x828b55, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x830d55, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x830c23, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x838e23, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x841155, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x841001, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x849201, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x849355, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x851555, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x851423, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x859623, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x859755, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x861955, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x861801, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x869a01, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x869b55, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x871d55, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x871c23, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x879e23, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x879f55, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x882155, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x882001, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x88a201, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x88a355, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x892555, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x892423, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0xa20954, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x220954, priv, DSM_TAXI_CAL_CFG(3));
+
+	spx5_wr(0x810002, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x810423, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x800023, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x800155, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x808355, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x808201, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x810401, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x810423, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x818623, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x818755, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x820955, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x820801, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x828a01, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x828b55, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x830d55, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x830c23, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x838e23, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x838f55, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x841155, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x841001, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x849201, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x849355, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x851555, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x851423, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x859623, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x859755, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x861955, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x861801, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x869a01, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x869b55, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x871d55, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x871c23, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x879e23, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x879f55, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x882155, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x882001, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x88a201, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x88a355, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x892555, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x892423, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x892422, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x92422, priv, DSM_TAXI_CAL_CFG(4));
+}
+
 static void sparx5_switch_config(struct sparx5_private *priv)
 {
 	int i;
@@ -295,14 +637,26 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 		 QSYS_CAL_CTRL_CAL_MODE,
 		 priv, QSYS_CAL_CTRL);
 
+	if (priv->data->target == LAN969X_TARGET) {
+		sparx5_lan969x_cal_cfg(priv);
+
+		spx5_wr(0x18624dd2, priv, PTP_CLK_PER_CFG(0, 1));
+		spx5_rmw(PTP_PTP_DOM_CFG_PTP_ENA_SET(1),
+			 PTP_PTP_DOM_CFG_PTP_ENA,
+			 priv, PTP_PTP_DOM_CFG);
+	}
+
 	/* Configure NPI port */
 	switch (priv->ports[priv->data->npi_port].mac_type) {
 	case IF_SGMII:
-		spx5_rmw(PORT_CONF_DEV5G_MODES_DEV5G_D64_MODE_SET(1),
-			 PORT_CONF_DEV5G_MODES_DEV5G_D64_MODE,
-			 priv, PORT_CONF_DEV5G_MODES);
+		if (priv->data->target == SPARX5_TARGET) {
+			spx5_rmw(PORT_CONF_DEV5G_MODES_DEV5G_D64_MODE_SET(1),
+				 PORT_CONF_DEV5G_MODES_DEV5G_D64_MODE,
+				 priv, PORT_CONF_DEV5G_MODES);
+		}
 		break;
 	case IF_RGMII:
+	case IF_SGMII_CISCO:
 		/* Nothing to do here */
 		break;
 	default:
@@ -315,6 +669,9 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 	/* Enable all 10G ports */
 	if (priv->data->target == SPARX5_TARGET)
 		spx5_wr(0xfff, priv, PORT_CONF_DEV10G_MODES);
+
+	if (priv->data->target == LAN969X_TARGET)
+		spx5_wr(0x0f000000, priv, PORT_CONF_DEV10G_MODES);
 
 	for (i = 0; i < priv->data->num_ports; i++) {
 		struct sparx5_phy_port *p = &priv->ports[i];
@@ -348,7 +705,7 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 			u32 p = (i / 4) * 4;
 			for (u32 cnt = 0; cnt < 4; cnt++) {
 				/* Must take the PCS out of reset for all 4 QSGMII instances */
-				spx5_rmw(DEV2G5_DEV_RST_CTRL_PCS_TX_RST_SET(1),
+				spx5_rmw(DEV2G5_DEV_RST_CTRL_PCS_TX_RST_SET(0),
 					 DEV2G5_DEV_RST_CTRL_PCS_TX_RST,
 					 priv, DEV2G5_DEV_RST_CTRL(p + cnt));
 			}
@@ -452,6 +809,7 @@ static void sparx5_port_sgmii_init(struct sparx5_private *priv, int port)
 				 priv->ports[port].mac_type,
 				 priv->ports[port].serdes_type,
 				 priv->ports[port].serdes_index);
+
 	/* Enable PCS */
 	spx5_wr(DEV2G5_PCS1G_CFG_PCS_ENA_SET(1),
 		priv, DEV2G5_PCS1G_CFG(port));
@@ -771,9 +1129,13 @@ static void sparx5_stop(struct udevice *dev)
 		 CPU_RESET_PROT_STAT_SYS_RST_PROT_VCORE,
 		 priv, CPU_RESET_PROT_STAT);
 
+	udelay(1000);
+
 	/* Reset switch core */
 	spx5_wr(GCB_SOFT_RST_SOFT_CHIP_RST_SET(1),
 		priv, GCB_SOFT_RST);
+
+	udelay(1000);
 }
 
 static int sparx5_send(struct udevice *dev, void *packet, int length)
@@ -974,8 +1336,14 @@ static int sparx5_probe(struct udevice *dev)
 	dev_priv = priv;
 
 	/* Power down all CMUs and set all serdeses in quiet mode */
-	sparx5_serdes_cmu_init();
-	sparx5_serdes_init();
+	/* Don't power down the cmus as the clock from the CMUs is used as a
+	 * reference clock, so when it is power off, the entire board looses the
+	 * clock
+	 */
+	if (priv->data->target == SPARX5_TARGET) {
+		sparx5_serdes_cmu_init();
+		sparx5_serdes_init();
+	}
 
 	return 0;
 }

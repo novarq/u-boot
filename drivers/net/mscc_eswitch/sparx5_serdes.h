@@ -4,10 +4,18 @@
  */
 #include <linux/delay.h>
 
+#ifdef CONFIG_MSCC_SPARX5_SWITCH
 #include "vtss_sparx5_regs_sd_cmu_term_target.h"
 #include "vtss_sparx5_regs_sd_lane_target.h"
 #include "vtss_sparx5_regs_sd10g_cmu_target.h"
 #include "vtss_sparx5_regs_sd10g_lane_target.h"
+#endif
+#ifdef CONFIG_MSCC_LAN969X_SWITCH
+#include "vtss_lan969x_regs_sd_cmu_term_target.h"
+#include "vtss_lan969x_regs_sd_lane_target.h"
+#include "vtss_lan969x_regs_sd10g_cmu_target.h"
+#include "vtss_lan969x_regs_sd10g_lane_target.h"
+#endif
 
 typedef struct vtss_state * vtss_state_t;
 typedef int vtss_rc;
@@ -24,9 +32,6 @@ typedef int vtss_port_no_t;
 #define VTSS_TO_SD6G_LANE(indx)  ((void *)vtss_to_sd6g_lane(indx))
 #define VTSS_TO_SD_LANE(indx)    ((void *)vtss_to_sd_lane(indx))
 #define VTSS_TO_SD10G_LANE(indx) ((void *)vtss_to_sd10g_lane(indx))
-
-#define VTSS_SERDES_10G_START 13
-#define VTSS_SERDES_25G_START 25
 
 /** \brief return values of setup function */
 typedef struct {
@@ -187,6 +192,7 @@ static inline u64 vtss_to_sd_cmu(u32 indx)
 	case 3: return VTSS_TO_SD_CMU_3;
 	case 4: return VTSS_TO_SD_CMU_4;
 	case 5: return VTSS_TO_SD_CMU_5;
+#ifdef CONFIG_MSCC_SPARX5_SWITCH
 	case 6: return VTSS_TO_SD_CMU_6;
 	case 7: return VTSS_TO_SD_CMU_7;
 	case 8: return VTSS_TO_SD_CMU_8;
@@ -195,6 +201,7 @@ static inline u64 vtss_to_sd_cmu(u32 indx)
 	case 11: return VTSS_TO_SD_CMU_11;
 	case 12: return VTSS_TO_SD_CMU_12;
 	case 13: return VTSS_TO_SD_CMU_13;
+#endif
 	default:
 		VTSS_E("illegal sd_cmu index %d",indx);
 		return 0;
@@ -210,6 +217,7 @@ static inline u64 vtss_to_sd_cmu_cfg(u32 indx)
 	case 3: return VTSS_TO_SD_CMU_CFG_3;
 	case 4: return VTSS_TO_SD_CMU_CFG_4;
 	case 5: return VTSS_TO_SD_CMU_CFG_5;
+#ifdef CONFIG_MSCC_SPARX5_SWITCH
 	case 6: return VTSS_TO_SD_CMU_CFG_6;
 	case 7: return VTSS_TO_SD_CMU_CFG_7;
 	case 8: return VTSS_TO_SD_CMU_CFG_8;
@@ -218,6 +226,7 @@ static inline u64 vtss_to_sd_cmu_cfg(u32 indx)
 	case 11: return VTSS_TO_SD_CMU_CFG_11;
 	case 12: return VTSS_TO_SD_CMU_CFG_12;
 	case 13: return VTSS_TO_SD_CMU_CFG_13;
+#endif
 	default:
 		VTSS_E("illegal sd_cmu index %d",indx);
 		return 0;
@@ -227,6 +236,7 @@ static inline u64 vtss_to_sd_cmu_cfg(u32 indx)
 u64 vtss_to_sd6g_lane(u32 indx)
 {
     switch (indx) {
+#ifdef CONFIG_MSCC_SPARX5_SWITCH
     case 0:  return VTSS_TO_SD6G_LANE_0;
     case 1:  return VTSS_TO_SD6G_LANE_1;
     case 2:  return VTSS_TO_SD6G_LANE_2;
@@ -240,6 +250,7 @@ u64 vtss_to_sd6g_lane(u32 indx)
     case 10: return VTSS_TO_SD6G_LANE_10;
     case 11: return VTSS_TO_SD6G_LANE_11;
     case 12: return VTSS_TO_SD6G_LANE_12;
+#endif
     default:
         VTSS_E("illegal 6G_lane index %d",indx);
         return 0;
@@ -259,6 +270,7 @@ u64 vtss_to_sd_lane(u32 indx)
     case 7: return VTSS_TO_SD_LANE_7;
     case 8: return VTSS_TO_SD_LANE_8;
     case 9: return VTSS_TO_SD_LANE_9;
+#ifdef CONFIG_MSCC_SPARX5_SWITCH
     case 10: return VTSS_TO_SD_LANE_10;
     case 11: return VTSS_TO_SD_LANE_11;
     case 12: return VTSS_TO_SD_LANE_12;
@@ -282,6 +294,7 @@ u64 vtss_to_sd_lane(u32 indx)
     case 30: return VTSS_TO_SD_LANE_30;
     case 31: return VTSS_TO_SD_LANE_31;
     case 32: return VTSS_TO_SD_LANE_32;
+#endif
     default:
         VTSS_E("illegal sd_lane index %d",indx);
         return 0;
@@ -301,8 +314,10 @@ u64 vtss_to_sd10g_lane(u32 indx)
     case 7:  return VTSS_TO_SD10G_LANE_7;
     case 8:  return VTSS_TO_SD10G_LANE_8;
     case 9:  return VTSS_TO_SD10G_LANE_9;
+#ifdef CONFIG_MSCC_SPARX5_SWITCH
     case 10: return VTSS_TO_SD10G_LANE_10;
     case 11: return VTSS_TO_SD10G_LANE_11;
+#endif
     default:
         VTSS_E("illegal 10G_lane index %d",indx);
         return 0;

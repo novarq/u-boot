@@ -50,19 +50,14 @@
 &mdio0 {
 	pinctrl-0 = <&mdio_pins>;
 	pinctrl-names = "default";
-
-	phy3: phy@3 {
-		reg = <3>;
-	};
 };
 
 &switch {
 	status = "okay";
 	ethernet-ports {
-		port28: port@28 {
-			reg = <28>;
-			phy-handle = <&phy3>;
-			phys = <IF_RGMII>;
+		port24: port@24 {
+			reg = <24>;
+			phys = <IF_SGMII_CISCO FA_SERDES_TYPE_10G 6>;
 		};
 	};
 };

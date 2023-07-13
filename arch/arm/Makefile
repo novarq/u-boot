@@ -96,6 +96,7 @@ machine-$(CONFIG_ARCH_ZYNQMP)		+= zynqmp
 machine-$(CONFIG_ARCH_ZYNQMP_R5)	+= zynqmp-r5
 
 machine-$(CONFIG_MACH_IMX)		+= imx
+machine-$(CONFIG_TARGET_LAN969X)	+= lan969x
 
 machdirs := $(patsubst %,arch/arm/mach-%/,$(machine-y))
 

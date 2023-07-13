@@ -134,6 +134,7 @@
 				      <0xe3408000 0x10000>,  // HSIO
 				      <0xe2010000 0x10000>,  // GCB
 				      <0xe00c0000 0x10000>,  // CPU
+				      <0xe2040000 0x10000>,  // PTP
 				      <0xe3004000 0x4000>,   // DEV2G5_0
 				      <0xe3010000 0x4000>,   // DEV2G5_1
 				      <0xe3014000 0x4000>,   // DEV2G5_2
@@ -169,7 +170,7 @@
 				      "asm", "lrn", "qfwd", "qs",
 				      "qsys", "rew", "vop", "dsm",
 				      "eacl", "vcap_super", "hsch", "port_conf", "xqs",
-				      "hsio", "gcb", "cpu",
+				      "hsio", "gcb", "cpu", "ptp",
 				      "port0", "port1", "port2", "port3",
 				      "port4", "port5", "port6", "port7", "port8",
 				      "port9", "port10", "port11", "port12", "port13",
