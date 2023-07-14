@@ -168,6 +168,9 @@ static void do_board_detect(void)
 #if defined(CONFIG_MULTI_DTB_FIT)
 int board_fit_config_name_match(const char *name)
 {
+	if (gd->board_type == 0)
+		do_board_detect();
+
 	if (gd->board_type == BOARD_TYPE_SUNRISE &&
 	    strcmp(name, "lan969x_sr") == 0)
 		return 0;
