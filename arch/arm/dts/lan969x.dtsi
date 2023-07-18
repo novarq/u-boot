@@ -108,7 +108,7 @@
 				clocks =  <&fabric_clk>, <&clks CLK_ID_QSPI0>;
 				clock-names = "pclk", "gclk";
 				assigned-clocks = <&clks CLK_ID_QSPI0>;
-				assigned-clock-rates = <104000000>;
+				assigned-clock-rates = <100000000>;
 				#address-cells = <1>;
 				#size-cells = <0>;
 				status = "disabled";
