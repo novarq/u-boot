@@ -250,6 +250,26 @@ int board_late_init(void)
 	return 0;
 }
 
+#ifdef CONFIG_DEBUG_UART_BOARD_INIT
+void board_debug_uart_init(void)
+{
+	u32 gpio;
+
+	/* Set GPIO 3 and 4 for ALT 1 to be used by FC0 */
+	gpio = in_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 0));
+	gpio |= BIT(3) | BIT(4);
+	out_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 0), gpio);
+
+	gpio = in_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 1));
+	gpio &= ~(BIT(3) | BIT(4));
+	out_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 1), gpio);
+
+	gpio = in_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 1));
+	gpio &= ~(BIT(3) | BIT(4));
+	out_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 1), gpio);
+}
+#endif
+
 int arch_cpu_init(void)
 {
 	return 0;
