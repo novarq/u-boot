@@ -5,7 +5,7 @@
  */
 
 &ddr {
-	microchip,mem-name = "pcb135_ddr3 2023-05-11-12:52:54 00e206508b93";
+	microchip,mem-name = "pcb135_ddr3 2023-07-21-13:44:16 98ff2c264618";
 	microchip,mem-speed = <1667>;
 	microchip,mem-size = <0x80000000>;
 	microchip,mem-bus-width = <32>;
@@ -50,9 +50,9 @@
 
 	microchip,mapping-reg = <
 		0x0000001f	/* addrmap0 */
-		0x00040401	/* addrmap1 */
-		0x01010100	/* addrmap2 */
-		0x13131303	/* addrmap3 */
+		0x00181818	/* addrmap1 */
+		0x00000000	/* addrmap2 */
+		0x00000000	/* addrmap3 */
 		0x00001f1f	/* addrmap4 */
 		0x04040404	/* addrmap5 */
 		0x04040404	/* addrmap6 */
