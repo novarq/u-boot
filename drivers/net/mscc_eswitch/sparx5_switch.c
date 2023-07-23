@@ -1262,6 +1262,7 @@ static int sparx5_probe(struct udevice *dev)
 			return -ENOMEM;
 		i = res.start;
 
+		bus = NULL;
 		ret = ofnode_parse_phandle_with_args(node, "phy-handle", NULL,
 						     0, 0, &phandle);
 
@@ -1282,7 +1283,8 @@ static int sparx5_probe(struct udevice *dev)
 			addr_size = resource_size(&res);
 
 			/* If the bus is new then create a new bus */
-			if (!sparx5_get_mdiobus(priv, addr_base, addr_size)) {
+			bus = sparx5_get_mdiobus(priv, addr_base, addr_size);
+			if (!bus) {
 				bus = mscc_mdiobus_init(priv->miim, &miim_count,
 							addr_base, addr_size);
 				priv->bus[miim_count - 1] = bus;
