@@ -7,6 +7,11 @@
 		stdout-path = &uart0;
 	};
 
+	config {
+		u-boot,mmc-env-offset		= <0x10008000>;
+		u-boot,mmc-env-offset-redundant = <0x10208000>;
+	};
+
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
