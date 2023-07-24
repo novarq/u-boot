@@ -29,4 +29,6 @@
 
 #define CFG_ENV_CALLBACK_LIST_STATIC "mmc_cur:mmc_cur"
 
+#define PHY_ANEG_TIMEOUT	20000
+
 #endif	/* __LAN969X_CONFIG_H */
