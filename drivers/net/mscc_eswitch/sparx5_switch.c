@@ -1127,13 +1127,9 @@ static void sparx5_stop(struct udevice *dev)
 		 CPU_RESET_PROT_STAT_SYS_RST_PROT_VCORE,
 		 priv, CPU_RESET_PROT_STAT);
 
-	udelay(1000);
-
 	/* Reset switch core */
 	spx5_wr(GCB_SOFT_RST_SOFT_CHIP_RST_SET(1),
 		priv, GCB_SOFT_RST);
-
-	udelay(1000);
 }
 
 static int sparx5_send(struct udevice *dev, void *packet, int length)
