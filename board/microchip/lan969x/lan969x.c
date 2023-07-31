@@ -20,7 +20,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 enum {
 	BOARD_TYPE_SUNRISE,
-	BOARD_TYPE_PCB8398,
+	BOARD_TYPE_EV23X71A, /* PCB8398 */
 	BOARD_TYPE_PCB8422,
 };
 
@@ -158,8 +158,8 @@ static void do_board_detect(void)
 {
 	/* CPU_BUILDID == 0 on ASIC */
 	if (in_le32(CPU_BUILDID(LAN969X_CPU_BASE)) == 0) {
-		/* For now, just select pcb8398 */
-		gd->board_type = BOARD_TYPE_PCB8398;
+		/* For now, just select ev23x71a */
+		gd->board_type = BOARD_TYPE_EV23X71A;
 	} else
 		/* Sunrise FPGA board */
 		gd->board_type = BOARD_TYPE_SUNRISE;
@@ -175,8 +175,8 @@ int board_fit_config_name_match(const char *name)
 	    strcmp(name, "lan969x_sr") == 0)
 		return 0;
 
-	if (gd->board_type == BOARD_TYPE_PCB8398 &&
-	    strcmp(name, "lan969x_pcb8398") == 0)
+	if (gd->board_type == BOARD_TYPE_EV23X71A &&
+	    strcmp(name, "lan969x_ev23x71a") == 0)
 		return 0;
 
 	if (gd->board_type == BOARD_TYPE_PCB8422 &&
@@ -197,7 +197,7 @@ int embedded_dtb_select(void)
 }
 #endif
 
-static int lan969x_pcb8398_board_init(void)
+static int lan969x_ev23x71a_board_init(void)
 {
 	u32 val;
 
@@ -230,8 +230,8 @@ static int lan969x_pcb8398_board_init(void)
 
 int board_init(void)
 {
-	if (gd->board_type == BOARD_TYPE_PCB8398)
-		return lan969x_pcb8398_board_init();
+	if (gd->board_type == BOARD_TYPE_EV23X71A)
+		return lan969x_ev23x71a_board_init();
 
 	return 0;
 }
@@ -239,8 +239,8 @@ int board_init(void)
 int board_late_init(void)
 {
 	if (!env_get("pcb")) {
-		if (gd->board_type == BOARD_TYPE_PCB8398)
-			env_set("pcb", "lan9698_ung8398_0_at_lan969x");
+		if (gd->board_type == BOARD_TYPE_EV23X71A)
+			env_set("pcb", "lan9698_ev23x71a_0_at_lan969x");
 		if (gd->board_type == BOARD_TYPE_PCB8422)
 			env_set("pcb", "lan9664_ung8422_0_at_lan969x");
 		if (gd->board_type == BOARD_TYPE_SUNRISE)

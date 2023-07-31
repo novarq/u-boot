@@ -6,7 +6,7 @@
 #include <dt-bindings/mscc/sparx5_data.h>
 
 / {
-	model = "lan969x UNG8398 EVB";
+	model = "lan969x ev23x71a (pcb8398)";
 	config {
 		u-boot,mmc-env-partition = "Env";
 	};
