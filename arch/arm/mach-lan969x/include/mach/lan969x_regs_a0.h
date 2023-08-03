@@ -2921,6 +2921,33 @@
 #define HMATRIX2_MATRIX_SRTSR0_SRTOP0_SRTSR0_M   GENMASK(3, 0)
 #define HMATRIX2_MATRIX_SRTSR0_SRTOP0_SRTSR0_X(x) ((x) & GENMASK(3, 0))
 
+/*      HSIO_WRAP:GPIO_CFG:GPIO_CFG */
+#define HSIO_WRAP_GPIO_CFG(t, r)  (t + (0x00 + ((r) * 4)))
+
+#define HSIO_WRAP_GPIO_CFG_HE(x)                 (((x) << 7) & GENMASK(7, 7))
+#define HSIO_WRAP_GPIO_CFG_HE_M                  GENMASK(7, 7)
+#define HSIO_WRAP_GPIO_CFG_HE_X(x)               (((x) & GENMASK(7, 7)) >> 7)
+
+#define HSIO_WRAP_GPIO_CFG_ST(x)                 (((x) << 5) & GENMASK(6, 5))
+#define HSIO_WRAP_GPIO_CFG_ST_M                  GENMASK(6, 5)
+#define HSIO_WRAP_GPIO_CFG_ST_X(x)               (((x) & GENMASK(6, 5)) >> 5)
+
+#define HSIO_WRAP_GPIO_CFG_SL(x)                 (((x) << 4) & GENMASK(4, 4))
+#define HSIO_WRAP_GPIO_CFG_SL_M                  GENMASK(4, 4)
+#define HSIO_WRAP_GPIO_CFG_SL_X(x)               (((x) & GENMASK(4, 4)) >> 4)
+
+#define HSIO_WRAP_GPIO_CFG_PU(x)                 (((x) << 3) & GENMASK(3, 3))
+#define HSIO_WRAP_GPIO_CFG_PU_M                  GENMASK(3, 3)
+#define HSIO_WRAP_GPIO_CFG_PU_X(x)               (((x) & GENMASK(3, 3)) >> 3)
+
+#define HSIO_WRAP_GPIO_CFG_PD(x)                 (((x) << 2) & GENMASK(2, 2))
+#define HSIO_WRAP_GPIO_CFG_PD_M                  GENMASK(2, 2)
+#define HSIO_WRAP_GPIO_CFG_PD_X(x)               (((x) & GENMASK(2, 2)) >> 2)
+
+#define HSIO_WRAP_GPIO_CFG_DS(x)                 ((x) & GENMASK(1, 0))
+#define HSIO_WRAP_GPIO_CFG_DS_M                  GENMASK(1, 0)
+#define HSIO_WRAP_GPIO_CFG_DS_X(x)               ((x) & GENMASK(1, 0))
+
 /*      OTP:OTP_REGS:OTP_PWR_DN */
 #define OTP_OTP_PWR_DN(t)         (t + 0x00)
 

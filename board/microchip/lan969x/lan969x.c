@@ -22,6 +22,7 @@ enum {
 	BOARD_TYPE_SUNRISE,
 	BOARD_TYPE_EV23X71A, /* PCB8398 */
 	BOARD_TYPE_PCB8422,
+	BOARD_TYPE_PCB10001, /* SVB */
 };
 
 typedef enum {
@@ -156,13 +157,48 @@ int dram_init(void)
 
 static void do_board_detect(void)
 {
-	/* CPU_BUILDID == 0 on ASIC */
-	if (in_le32(CPU_BUILDID(LAN969X_CPU_BASE)) == 0) {
-		/* For now, just select ev23x71a */
-		gd->board_type = BOARD_TYPE_EV23X71A;
-	} else
+	u32 val;
+	u32 tmp;
+
+	/* CPU_BUILDID != 0 on FPGA */
+	if (in_le32(CPU_BUILDID(LAN969X_CPU_BASE)) != 0) {
 		/* Sunrise FPGA board */
 		gd->board_type = BOARD_TYPE_SUNRISE;
+		return;
+	}
+
+	/* If GPIO 62 is low, regardless of the internal pull-up/pull-down then
+	 * this is ev23x71a board
+	 */
+	val = in_le32(GCB_GPIO_IN1(LAN969X_GCB_BASE));
+	if (!(val & BIT(62 - 32))) {
+		gd->board_type = BOARD_TYPE_EV23X71A;
+		return;
+	}
+
+	/* If GPIO 62 is high, even if the pull-down is active then this is
+	 * pcb8422 board. To enable pull-down/up on GPIOs after GPIO 42, it
+	 * required to write in a different register and GPIO0-41.
+	 */
+	tmp = in_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42));
+
+	/* Enable pull down, disable pull up */
+	setbits_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42), BIT(2));
+	clrbits_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42), BIT(3));
+	val = in_le32(GCB_GPIO_IN1(LAN969X_GCB_BASE));
+	if (val & BIT(62 - 32)) {
+		/* Restore back the pull-down/up */
+		out_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42), tmp);
+
+		gd->board_type = BOARD_TYPE_PCB8422;
+		return;
+	}
+
+	/* Restore back the pull-down/up */
+	out_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42), tmp);
+
+	/* Currently there is no other options so just use PCB10001 */
+	gd->board_type = BOARD_TYPE_PCB10001;
 }
 
 #if defined(CONFIG_MULTI_DTB_FIT)
@@ -181,6 +217,10 @@ int board_fit_config_name_match(const char *name)
 
 	if (gd->board_type == BOARD_TYPE_PCB8422 &&
 	    strcmp(name, "lan969x_pcb8422") == 0)
+		return 0;
+
+	if (gd->board_type == BOARD_TYPE_PCB10001 &&
+	    strcmp(name, "lan969x_pcb10001") == 0)
 		return 0;
 
 	return -1;
@@ -245,6 +285,8 @@ int board_late_init(void)
 			env_set("pcb", "lan9664_ung8422_0_at_lan969x");
 		if (gd->board_type == BOARD_TYPE_SUNRISE)
 			env_set("pcb", "lan9664_sunrise_0_at_lan969x");
+		if (gd->board_type == BOARD_TYPE_PCB10001)
+			env_set("pcb", "lan9668_pcb10001_0_at_lan969x");
 	}
 
 	return 0;
