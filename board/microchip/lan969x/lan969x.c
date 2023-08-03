@@ -321,18 +321,3 @@ int mach_cpu_init(void)
 {
 	return 0;
 }
-
-// Helper for MMC backup image
-static int on_mmc_cur(const char *name, const char *value, enum env_op op,
-		      int flags)
-{
-	ulong mmc_cur = simple_strtoul(value, NULL, 16);
-
-	debug("%s is %s\n", name, value);
-
-	env_set_ulong("mmc_bak", mmc_cur == 0 ? 1 : 0);
-
-	return 0;
-}
-
-U_BOOT_ENV_CALLBACK(mmc_cur, on_mmc_cur);
