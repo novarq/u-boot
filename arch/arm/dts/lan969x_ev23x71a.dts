@@ -18,10 +18,6 @@
 	pinctrl-names = "default";
 };
 
-&sdhci0 {
-	status = "okay";
-};
-
 &emmc {
 	status = "okay";
 	pinctrl-0 = <&emmc_sd_pins>;
