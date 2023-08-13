@@ -12,12 +12,42 @@
 #include <asm/io.h>
 #include <asm/arch/clk.h>
 #include <asm/arch/hardware.h>
+#ifdef CONFIG_ARCH_AT91
 #include <asm/arch/at91_spi.h>
+#endif
 #if CONFIG_IS_ENABLED(DM_GPIO)
 #include <asm/gpio.h>
 #endif
 #include <linux/bitops.h>
 #include <linux/printk.h>
+
+typedef struct at91_pdc {
+	u32	rpr;		/* 0x100 Receive Pointer Register */
+	u32	rcr;		/* 0x104 Receive Counter Register */
+	u32	tpr;		/* 0x108 Transmit Pointer Register */
+	u32	tcr;		/* 0x10C Transmit Counter Register */
+	u32	pnpr;		/* 0x110 Receive Next Pointer Register */
+	u32	pncr;		/* 0x114 Receive Next Counter Register */
+	u32	tnpr;		/* 0x118 Transmit Next Pointer Register */
+	u32	tncr;		/* 0x11C Transmit Next Counter Register */
+	u32	ptcr;		/* 0x120 Transfer Control Register */
+	u32	ptsr;		/* 0x124 Transfer Status Register */
+} at91_pdc_t;
+
+typedef struct at91_spi {
+	u32		cr;		/* 0x00 Control Register */
+	u32		mr;		/* 0x04 Mode Register */
+	u32		rdr;		/* 0x08 Receive Data Register */
+	u32		tdr;		/* 0x0C Transmit Data Register */
+	u32		sr;		/* 0x10 Status Register */
+	u32		ier;		/* 0x14 Interrupt Enable Register */
+	u32		idr;		/* 0x18 Interrupt Disable Register */
+	u32		imr;		/* 0x1C Interrupt Mask Register */
+	u32		reserve1[4];
+	u32		csr[4];		/* 0x30 Chip Select Register 0-3 */
+	u32		reserve2[48];
+	at91_pdc_t	pdc;
+} at91_spi_t;
 
 /*
  * Register definitions for the Atmel AT32/AT91 SPI Controller
