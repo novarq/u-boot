@@ -270,6 +270,7 @@ struct atmel_qspi_priv_ops;
 struct atmel_qspi {
 	void __iomem *regs;
 	void __iomem *mem;
+	void __iomem *pads;
 	resource_size_t mmap_size;
 	const struct atmel_qspi_caps *caps;
 	const struct atmel_qspi_priv_ops *ops;
@@ -1070,6 +1071,11 @@ static int lan966x_qspi_init(struct atmel_qspi *aq)
 	u32 wpkey = QSPI_WPKEY;
 	int ret;
 
+	if (aq->pads) {
+		for (int i = 0; i < 6; ++i)
+			writel(0x29, aq->pads + i * 4);
+	}
+
 	atmel_qspi_write(QSPI_CR_DLLOFF, aq, QSPI_CR);
 
 	if (!aq->caps->fpga &&
@@ -1217,6 +1223,13 @@ static int atmel_qspi_probe(struct udevice *dev)
 		return PTR_ERR(aq->mem);
 
 	aq->mmap_size = resource_size(&res);
+
+	ret = dev_read_resource_byname(dev, "qspi_pads", &res);
+	if (!ret) {
+		aq->pads = devm_ioremap(dev, res.start, resource_size(&res));
+		if (IS_ERR(aq->pads))
+			return PTR_ERR(aq->pads);
+	}
 
 	ret = atmel_qspi_enable_clk(dev);
 	if (ret)

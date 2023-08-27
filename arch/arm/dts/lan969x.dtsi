@@ -108,8 +108,10 @@
 			qspi: qspi@e0834000 {
 				u-boot,dm-pre-reloc;
 				compatible = "microchip,lan969x-qspi";
-				reg = <0xE0804000 0x00000100>, <0x20000000 0x08000000>;
-				reg-names = "qspi_base", "qspi_mmap";
+				reg = <0xE0804000 0x00000100>,
+				      <0x20000000 0x08000000>,
+				      <0xe2010418 0x00000018>;
+				reg-names = "qspi_base", "qspi_mmap", "qspi_pads";
 				clocks =  <&fabric_clk>, <&clks CLK_ID_QSPI0>;
 				clock-names = "pclk", "gclk";
 				assigned-clocks = <&clks CLK_ID_QSPI0>;
