@@ -12,11 +12,13 @@
 #include <fdtdec.h>
 #include <linux/delay.h>
 #include <phy.h>
+#include <asm/arch/soc.h>
 
 #include "lan966x_main.h"
 #include "lan966x_cpu_regs.h"
 #include "lan966x_top_regs_access.h"
 
+#undef _DEBUG
 #define _DEBUG 1
 
 enum {
@@ -180,15 +182,6 @@ typedef enum {
 	LAN966X_STRAP_SPI_SLAVE = 15,
 } soc_strapping;
 
-typedef enum {
-	BOOT_SOURCE_EMMC = 0,
-	BOOT_SOURCE_QSPI,
-	BOOT_SOURCE_SDMMC,
-	BOOT_SOURCE_QSPI_ETC,
-	BOOT_SOURCE_SD_ETC,
-	BOOT_SOURCE_NONE
-} boot_source_type;
-
 static soc_strapping get_strapping(void)
 {
 	soc_strapping boot_mode;
@@ -202,40 +195,11 @@ static soc_strapping get_strapping(void)
 	return boot_mode;
 }
 
-static boot_source_type get_boot_source(void)
-{
-	boot_source_type boot_source;
-
-	switch (get_strapping()) {
-	case LAN966X_STRAP_BOOT_MMC:
-	case LAN966X_STRAP_BOOT_MMC_FC:
-	case LAN966X_STRAP_BOOT_MMC_TFAMON_FC:
-		boot_source = BOOT_SOURCE_EMMC;
-		break;
-	case LAN966X_STRAP_BOOT_QSPI:
-	case LAN966X_STRAP_BOOT_QSPI_FC:
-	case LAN966X_STRAP_BOOT_QSPI_TFAMON_FC:
-		boot_source = BOOT_SOURCE_QSPI;
-		break;
-	case LAN966X_STRAP_BOOT_SD:
-	case LAN966X_STRAP_BOOT_SD_FC:
-	case LAN966X_STRAP_BOOT_SD_TFAMON_FC:
-		boot_source = BOOT_SOURCE_SDMMC;
-		break;
-		/* These modes are not in LAN966X B0 */
-	default:
-		boot_source = BOOT_SOURCE_NONE;
-		break;
-	}
-
-	return boot_source;
-}
-
 int board_late_init(void)
 {
 	lan966x_otp_init();
 
-	switch (get_boot_source()) {
+	switch (tfa_get_boot_source()) {
 	case BOOT_SOURCE_EMMC:
 		env_set("boot_source", "mmc");
 		break;
@@ -527,7 +491,7 @@ void reset_cpu(void)
 
 enum env_location env_get_location(enum env_operation op, int prio)
 {
-	boot_source_type boot_source =  get_boot_source();
+	boot_source_type_t boot_source = tfa_get_boot_source();
 
 	switch(boot_source) {
 	case BOOT_SOURCE_EMMC:
@@ -536,24 +500,6 @@ enum env_location env_get_location(enum env_operation op, int prio)
 		return prio == 0 ? ENVL_SPI_FLASH : ENVL_UNKNOWN;
 	case BOOT_SOURCE_SDMMC:
 		return prio == 0 ? ENVL_FAT : ENVL_UNKNOWN;
-	case BOOT_SOURCE_QSPI_ETC:
-		if (prio == 0)
-			return ENVL_SPI_FLASH;
-		if (prio == 1)
-			return ENVL_MMC;
-		if (prio == 2)
-			return ENVL_FAT;
-
-		return ENVL_UNKNOWN;
-	case BOOT_SOURCE_SD_ETC:
-		if (prio == 0)
-			return ENVL_FAT;
-		if (prio == 1)
-			return ENVL_MMC;
-		if (prio == 2)
-			return ENVL_SPI_FLASH;
-
-		return ENVL_UNKNOWN;
 	default:
 		return ENVL_UNKNOWN;
 	}
