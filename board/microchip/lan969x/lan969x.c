@@ -13,6 +13,7 @@
 #include <env.h>
 #include <env_internal.h>
 
+#include <asm/arch/soc.h>
 #include <asm/arch/lan969x_targets_a0.h>
 #include <asm/arch/lan969x_regs_a0.h>
 
@@ -24,32 +25,6 @@ enum {
 	BOARD_TYPE_PCB8422,
 	BOARD_TYPE_PCB10001, /* SVB */
 };
-
-typedef enum {
-	LAN966X_STRAP_BOOT_MMC_FC = 0,
-        LAN966X_STRAP_BOOT_QSPI_FC = 1,
-        LAN966X_STRAP_BOOT_SD_FC = 2,
-        LAN966X_STRAP_BOOT_MMC = 3,
-        LAN966X_STRAP_BOOT_QSPI = 4,
-        LAN966X_STRAP_BOOT_SD = 5,
-        LAN966X_STRAP_PCIE_ENDPOINT = 6,
-        _LAN966X_STRAP_BOOT_RESERVED_7 = 7,
-        LAN966X_STRAP_BOOT_QSPI_HS_FC = 8,
-        _LAN966X_STRAP_BOOT_RESERVED_9 = 9,
-        LAN966X_STRAP_TFAMON_FC0 = 10,
-        LAN966X_STRAP_TFAMON_FC0_HS = 11,
-        _LAN966X_STRAP_BOOT_RESERVED_12 = 12,
-        LAN966X_STRAP_BOOT_QSPI_HS = 13,
-        _LAN966X_STRAP_BOOT_RESERVED_14 = 14,
-        LAN966X_STRAP_SPI_SLAVE = 15,
-} soc_strapping;
-
-typedef enum {
-	BOOT_SOURCE_EMMC = 0,
-	BOOT_SOURCE_QSPI,
-	BOOT_SOURCE_SDMMC,
-	BOOT_SOURCE_NONE
-} boot_source_type;
 
 static struct mm_region fa_mem_map[] = {
         {
@@ -79,48 +54,9 @@ static struct mm_region fa_mem_map[] = {
 };
 struct mm_region *mem_map = fa_mem_map;
 
-static soc_strapping lan966x_get_strapping(void)
-{
-	soc_strapping boot_mode;
-
-	boot_mode = in_le32(CPU_GPR(LAN969X_CPU_BASE, 0));
-	if (boot_mode == 0)
-		boot_mode = in_le32(CPU_GENERAL_STAT(LAN969X_CPU_BASE));
-	boot_mode = CPU_GENERAL_STAT_VCORE_CFG_X(boot_mode);
-
-	return boot_mode;
-}
-
-static boot_source_type get_boot_source(void)
-{
-	boot_source_type boot_source;
-
-	switch (lan966x_get_strapping()) {
-	case LAN966X_STRAP_BOOT_MMC:
-	case LAN966X_STRAP_BOOT_MMC_FC:
-		boot_source = BOOT_SOURCE_EMMC;
-		break;
-	case LAN966X_STRAP_BOOT_QSPI:
-	case LAN966X_STRAP_BOOT_QSPI_FC:
-	case LAN966X_STRAP_BOOT_QSPI_HS_FC:
-	case LAN966X_STRAP_BOOT_QSPI_HS:
-		boot_source = BOOT_SOURCE_QSPI;
-		break;
-	case LAN966X_STRAP_BOOT_SD:
-	case LAN966X_STRAP_BOOT_SD_FC:
-		boot_source = BOOT_SOURCE_SDMMC;
-		break;
-	default:
-		boot_source = BOOT_SOURCE_NONE;
-		break;
-	}
-
-	return boot_source;
-}
-
 enum env_location env_get_location(enum env_operation op, int prio)
 {
-	boot_source_type boot_source =  get_boot_source();
+	boot_source_type_t boot_source = tfa_get_boot_source();
 
 	switch(boot_source) {
 	case BOOT_SOURCE_EMMC:
@@ -150,7 +86,11 @@ int print_cpuinfo(void)
 
 int dram_init(void)
 {
-	gd->ram_size = PHYS_SDRAM_1_SIZE;
+	gd->ram_size = tfa_get_dram_size();
+
+	/* Fall-back to compile-time default */
+	if (!gd->ram_size)
+		gd->ram_size = PHYS_SDRAM_1_SIZE;
 
 	return 0;
 }
