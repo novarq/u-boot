@@ -90,7 +90,7 @@ int dram_init(void)
 
 	/* Fall-back to compile-time default */
 	if (!gd->ram_size)
-		gd->ram_size = PHYS_SDRAM_1_SIZE;
+		gd->ram_size = LAN969X_DDR_SIZE_DEF;
 
 	return 0;
 }
@@ -106,6 +106,9 @@ static void do_board_detect(void)
 		gd->board_type = BOARD_TYPE_SUNRISE;
 		return;
 	}
+
+	gd->board_type = BOARD_TYPE_PCB10001;
+	return;
 
 	/* If GPIO 62 is low, regardless of the internal pull-up/pull-down then
 	 * this is ev23x71a board

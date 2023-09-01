@@ -13,13 +13,14 @@
 #define LAN969X_QSPI0_MMAP      UL(0x20000000)
 #define LAN969X_QSPI0_RANGE     SZ_16M
 #define LAN969X_DDR_BASE        UL(0x60000000)
-#define LAN969X_DDR_SIZE        (SZ_1G - (SZ_1G / 8)) /* ECC enabled cost 1/8th capacity */
+#define LAN969X_DDR_SIZE_DEF    (SZ_1G - (SZ_1G / 8)) /* ECC enabled cost 1/8th capacity */
+#define LAN969X_DDR_SIZE_MAX    SZ_2G
 
 #define LAN969X_DEV_BASE	UL(0xE0000000)
 #define LAN969X_DEV_SIZE	UL(0x10000000)
 
 #define PHYS_SDRAM_1		LAN969X_DDR_BASE
-#define PHYS_SDRAM_1_SIZE	LAN969X_DDR_SIZE
+#define PHYS_SDRAM_1_SIZE	LAN969X_DDR_SIZE_MAX /* Used for MMU table - only */
 
 #define CFG_SYS_SDRAM_BASE	LAN969X_DDR_BASE
 #define CFG_SYS_INIT_RAM_ADDR	(LAN969X_DDR_BASE + SZ_64M)
