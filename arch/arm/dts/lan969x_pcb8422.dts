@@ -7,9 +7,6 @@
 
 / {
 	model = "lan969x UNG8422 EVB";
-	config {
-		u-boot,mmc-env-partition = "Env";
-	};
 };
 
 &uart0 {
