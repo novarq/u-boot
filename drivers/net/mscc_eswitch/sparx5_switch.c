@@ -304,61 +304,61 @@ static void sparx5_lan969x_cal_cfg(struct sparx5_private *priv)
 	spx5_wr(0x00240f55, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00241155, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00249155, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00249355, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00251355, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00251545, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00259445, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00259655, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00249345, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00251245, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00251455, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00259555, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00259755, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00261755, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00261955, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00269955, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00269b55, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00271b55, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00271d55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00269b47, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00271a67, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00271c75, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00279d55, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00279f47, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00281e67, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00282075, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00279f55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00281f55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00282155, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x0028a155, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x0028a355, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00292355, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00292555, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x0029a555, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x0029a755, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00292549, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x0029a489, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x0029a695, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002a2755, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002a2949, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002aa889, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002aaa95, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002a2955, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002aa955, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002aab55, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002b2b55, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002b2d55, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002bad55, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002baf55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002b2d4b, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002bacab, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002baeb5, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002c2f55, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002c3155, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002cb155, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002cb34b, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002d32ab, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002d34b5, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002db555, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002db755, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002cb355, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002d3355, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002d354d, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002db4cd, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002db6d5, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002e3755, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002e3955, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002eb955, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002ebb55, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x002f3b55, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002f3d4d, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002fbccd, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x002fbed5, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00303f55, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x00304155, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002f3d55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002fbd55, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x002fbf4f, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00303eef, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x003040f5, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x0030c155, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x0030c355, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00314355, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00314555, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x0031c555, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x0031c74f, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x003246ef, priv, DSM_TAXI_CAL_CFG(0));
-	spx5_wr(0x003248f5, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x0031c753, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00324733, priv, DSM_TAXI_CAL_CFG(0));
+	spx5_wr(0x00324935, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x0032c955, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x0032cb55, priv, DSM_TAXI_CAL_CFG(0));
 	spx5_wr(0x00334b55, priv, DSM_TAXI_CAL_CFG(0));
@@ -529,9 +529,9 @@ static void sparx5_lan969x_cal_cfg(struct sparx5_private *priv)
 	spx5_wr(0x00334d55, priv, DSM_TAXI_CAL_CFG(2));
 	spx5_wr(0x00334d54, priv, DSM_TAXI_CAL_CFG(2));
 	spx5_wr(0x00734d54, priv, DSM_TAXI_CAL_CFG(2));
-	spx5_wr(0x00200140, priv, DSM_TAXI_CAL_CFG(3));
-	spx5_wr(0x00200141, priv, DSM_TAXI_CAL_CFG(3));
-	spx5_wr(0x00200001, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x00210000, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x00210001, priv, DSM_TAXI_CAL_CFG(3));
+	spx5_wr(0x00200401, priv, DSM_TAXI_CAL_CFG(3));
 	spx5_wr(0x00200015, priv, DSM_TAXI_CAL_CFG(3));
 	spx5_wr(0x00208155, priv, DSM_TAXI_CAL_CFG(3));
 	spx5_wr(0x00208341, priv, DSM_TAXI_CAL_CFG(3));
@@ -571,9 +571,9 @@ static void sparx5_lan969x_cal_cfg(struct sparx5_private *priv)
 	spx5_wr(0x00292543, priv, DSM_TAXI_CAL_CFG(3));
 	spx5_wr(0x00292422, priv, DSM_TAXI_CAL_CFG(3));
 	spx5_wr(0x00692422, priv, DSM_TAXI_CAL_CFG(3));
-	spx5_wr(0x00200140, priv, DSM_TAXI_CAL_CFG(4));
-	spx5_wr(0x00200141, priv, DSM_TAXI_CAL_CFG(4));
-	spx5_wr(0x00200001, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x00210000, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x00210001, priv, DSM_TAXI_CAL_CFG(4));
+	spx5_wr(0x00200401, priv, DSM_TAXI_CAL_CFG(4));
 	spx5_wr(0x00200015, priv, DSM_TAXI_CAL_CFG(4));
 	spx5_wr(0x00208155, priv, DSM_TAXI_CAL_CFG(4));
 	spx5_wr(0x00208341, priv, DSM_TAXI_CAL_CFG(4));
@@ -863,7 +863,7 @@ static void sparx5_port_rgmii_init(struct sparx5_private *priv, int port)
 
 	/* Enable the RGMII0 on the GPIOs */
 	spx5_wr(HSIO_WRAP_XMII_CFG_GPIO_XMII_CFG_SET(1),
-		priv, HSIO_WRAP_XMII_CFG(rgmii_index));
+		priv, HSIO_WRAP_XMII_CFG(!rgmii_index));
 
 	/* Take the RGMII out of reset and set speed to 1G */
 	spx5_wr(HSIO_WRAP_RGMII_CFG_TX_CLK_CFG_SET(1),
@@ -872,28 +872,38 @@ static void sparx5_port_rgmii_init(struct sparx5_private *priv, int port)
 	/* Enable the RGMII delays on the MAC both on the RX and TX.
 	 * The signal is shft by 90 degress
 	 */
-	spx5_wr(HSIO_WRAP_DLL_CFG_DLL_ENA_SET(1) |
-		HSIO_WRAP_DLL_CFG_DLL_CLK_ENA_SET(1) |
-		HSIO_WRAP_DLL_CFG_DLL_CLK_SEL_SET(4),
-		priv, HSIO_WRAP_DLL_CFG(rgmii_index, 0));
+	spx5_rmw(HSIO_WRAP_DLL_CFG_DLL_RST_SET(0) |
+		 HSIO_WRAP_DLL_CFG_DLL_ENA_SET(1) |
+		 HSIO_WRAP_DLL_CFG_DLL_CLK_ENA_SET(0) |
+		 HSIO_WRAP_DLL_CFG_DLL_CLK_SEL_SET(3),
+		 HSIO_WRAP_DLL_CFG_DLL_ENA |
+		 HSIO_WRAP_DLL_CFG_DLL_RST |
+		 HSIO_WRAP_DLL_CFG_DLL_CLK_ENA |
+		 HSIO_WRAP_DLL_CFG_DLL_CLK_SEL,
+		 priv, HSIO_WRAP_DLL_CFG(rgmii_index, 0));
 
-	spx5_wr(HSIO_WRAP_DLL_CFG_DLL_ENA_SET(1) |
-		HSIO_WRAP_DLL_CFG_DLL_CLK_ENA_SET(1) |
-		HSIO_WRAP_DLL_CFG_DLL_CLK_SEL_SET(4),
-		priv, HSIO_WRAP_DLL_CFG(rgmii_index, 1));
+	spx5_rmw(HSIO_WRAP_DLL_CFG_DLL_RST_SET(0) |
+		 HSIO_WRAP_DLL_CFG_DLL_ENA_SET(1) |
+		 HSIO_WRAP_DLL_CFG_DLL_CLK_ENA_SET(1) |
+		 HSIO_WRAP_DLL_CFG_DLL_CLK_SEL_SET(3),
+		 HSIO_WRAP_DLL_CFG_DLL_ENA |
+		 HSIO_WRAP_DLL_CFG_DLL_RST |
+		 HSIO_WRAP_DLL_CFG_DLL_CLK_ENA |
+		 HSIO_WRAP_DLL_CFG_DLL_CLK_SEL,
+		 priv, HSIO_WRAP_DLL_CFG(rgmii_index, 1));
 
 	/* Configure the port now */
 	spx5_wr(DEVRGMII_MAC_ENA_CFG_RX_ENA_SET(1) |
 		DEVRGMII_MAC_ENA_CFG_TX_ENA_SET(1),
-		priv, DEVRGMII_MAC_ENA_CFG(rgmii_index));
+		priv, DEVRGMII_MAC_ENA_CFG(port));
 
 	spx5_wr(DEVRGMII_MAC_IFG_CFG_TX_IFG_SET(4) |
 		DEVRGMII_MAC_IFG_CFG_RX_IFG1_SET(5) |
 		DEVRGMII_MAC_IFG_CFG_RX_IFG2_SET(1),
-		priv, DEVRGMII_MAC_IFG_CFG(rgmii_index));
+		priv, DEVRGMII_MAC_IFG_CFG(port));
 
 	spx5_wr(DEVRGMII_DEV_RST_CTRL_SPEED_SEL_SET(2),
-		priv, DEVRGMII_DEV_RST_CTRL(rgmii_index));
+		priv, DEVRGMII_DEV_RST_CTRL(port));
 }
 
 static void sparx5_port_init(struct sparx5_private *priv, int port)
