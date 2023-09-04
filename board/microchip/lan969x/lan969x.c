@@ -107,9 +107,6 @@ static void do_board_detect(void)
 		return;
 	}
 
-	gd->board_type = BOARD_TYPE_PCB10001;
-	return;
-
 	/* If GPIO 62 is low, regardless of the internal pull-up/pull-down then
 	 * this is ev23x71a board
 	 */
