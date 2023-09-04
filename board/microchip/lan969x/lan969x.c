@@ -218,6 +218,20 @@ int board_init(void)
 
 int board_late_init(void)
 {
+	switch (tfa_get_boot_source()) {
+	case BOOT_SOURCE_EMMC:
+		env_set("boot_source", "mmc");
+		break;
+	case BOOT_SOURCE_QSPI:
+		env_set("boot_source", "nor");
+		break;
+	case BOOT_SOURCE_SDMMC:
+		env_set("boot_source", "sd");
+		break;
+	default:
+		env_set("boot_source", "");
+	}
+
 	if (!env_get("pcb")) {
 		if (gd->board_type == BOARD_TYPE_EV23X71A)
 			env_set("pcb", "lan9698_ev23x71a_0_at_lan969x");
