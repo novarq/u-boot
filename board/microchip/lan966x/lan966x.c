@@ -406,9 +406,6 @@ static void board_pcb8291_init(void)
 
 int board_init(void)
 {
-	/* address of boot parameters */
-	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
-
 	if (gd->board_type == BOARD_TYPE_LAN966X_PCB8290)
 		board_pcb8290_init();
 
@@ -424,7 +421,12 @@ int board_init(void)
 
 int dram_init(void)
 {
-	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;
+	gd->ram_size = tfa_get_dram_size();
+
+	/* Fall-back to compile-time default */
+	if (!gd->ram_size)
+		gd->ram_size = DDR_MEM_SIZE_DEF;
+
 	return 0;
 }
 
@@ -489,9 +491,41 @@ void reset_cpu(void)
 	REG_WR(GCB_SOFT_RST, GCB_SOFT_RST_SOFT_SWC_RST(1));
 }
 
+static boot_source_type_t get_boot_source(void)
+{
+       boot_source_type_t boot_source;
+
+       switch (get_strapping()) {
+       case LAN966X_STRAP_BOOT_MMC:
+       case LAN966X_STRAP_BOOT_MMC_FC:
+       case LAN966X_STRAP_BOOT_MMC_TFAMON_FC:
+               boot_source = BOOT_SOURCE_EMMC;
+               break;
+       case LAN966X_STRAP_BOOT_QSPI:
+       case LAN966X_STRAP_BOOT_QSPI_FC:
+       case LAN966X_STRAP_BOOT_QSPI_TFAMON_FC:
+               boot_source = BOOT_SOURCE_QSPI;
+               break;
+       case LAN966X_STRAP_BOOT_SD:
+       case LAN966X_STRAP_BOOT_SD_FC:
+       case LAN966X_STRAP_BOOT_SD_TFAMON_FC:
+               boot_source = BOOT_SOURCE_SDMMC;
+               break;
+               /* These modes are not in LAN966X B0 */
+       default:
+               boot_source = BOOT_SOURCE_NONE;
+               break;
+       }
+
+       return boot_source;
+}
+
 enum env_location env_get_location(enum env_operation op, int prio)
 {
 	boot_source_type_t boot_source = tfa_get_boot_source();
+
+	if (boot_source == BOOT_SOURCE_NONE)
+		boot_source = get_boot_source();
 
 	switch(boot_source) {
 	case BOOT_SOURCE_EMMC:

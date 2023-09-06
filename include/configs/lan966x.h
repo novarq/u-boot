@@ -3,6 +3,8 @@
 #ifndef __LAN966X_CONFIG_H
 #define __LAN966X_CONFIG_H
 
+#include <linux/sizes.h>
+
 #define CONFIG_ARCH_CPU_INIT
 
 #define CONFIG_BOARD_TYPES
@@ -15,15 +17,11 @@
 #define CFG_SYS_INIT_RAM_ADDR           CONFIG_SYS_SDRAM_BASE
 #define CFG_SYS_INIT_RAM_SIZE           0x400000
 
-#if defined(CONFIG_TARGET_LAN966X_EVB)
-#define DDR_MEM_SIZE_RAW 0x40000000
-#define DDR_MEM_SIZE	 (DDR_MEM_SIZE_RAW - (DDR_MEM_SIZE_RAW / 8))	/* ECC enabled cost 1/8th capacity */
-#elif defined(CONFIG_TARGET_LAN966X_SVB)
-#define DDR_MEM_SIZE 0x80000000
-#endif
-
+/* Important for relocation */
 #define CFG_SYS_SDRAM_BASE              CONFIG_SYS_SDRAM_BASE
-#define CONFIG_SYS_SDRAM_SIZE (DDR_MEM_SIZE - (2 * 1024 * 1024))
+
+#define DDR_MEM_SIZE_DEF (SZ_1G - (SZ_1G / 8))	/* 1Gb with ECC enabled cost 1/8th capacity */
+#define DDR_MEM_SIZE_MAX SZ_2G
 
 #define CONFIG_SYS_MMC_ENV_DEV		0
 
