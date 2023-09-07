@@ -22,7 +22,6 @@ DECLARE_GLOBAL_DATA_PTR;
 enum {
 	BOARD_TYPE_SUNRISE,
 	BOARD_TYPE_EV23X71A, /* PCB8398 */
-	BOARD_TYPE_PCB8422,
 	BOARD_TYPE_PCB10001, /* SVB */
 };
 
@@ -116,27 +115,6 @@ static void do_board_detect(void)
 		return;
 	}
 
-	/* If GPIO 62 is high, even if the pull-down is active then this is
-	 * pcb8422 board. To enable pull-down/up on GPIOs after GPIO 42, it
-	 * required to write in a different register and GPIO0-41.
-	 */
-	tmp = in_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42));
-
-	/* Enable pull down, disable pull up */
-	setbits_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42), BIT(2));
-	clrbits_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42), BIT(3));
-	val = in_le32(GCB_GPIO_IN1(LAN969X_GCB_BASE));
-	if (val & BIT(62 - 32)) {
-		/* Restore back the pull-down/up */
-		out_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42), tmp);
-
-		gd->board_type = BOARD_TYPE_PCB8422;
-		return;
-	}
-
-	/* Restore back the pull-down/up */
-	out_le32(HSIO_WRAP_GPIO_CFG(LAN969X_HSIO_WRAP_BASE, 62 - 42), tmp);
-
 	/* Currently there is no other options so just use PCB10001 */
 	gd->board_type = BOARD_TYPE_PCB10001;
 }
@@ -153,10 +131,6 @@ int board_fit_config_name_match(const char *name)
 
 	if (gd->board_type == BOARD_TYPE_EV23X71A &&
 	    strcmp(name, "lan969x_ev23x71a") == 0)
-		return 0;
-
-	if (gd->board_type == BOARD_TYPE_PCB8422 &&
-	    strcmp(name, "lan969x_pcb8422") == 0)
 		return 0;
 
 	if (gd->board_type == BOARD_TYPE_PCB10001 &&
@@ -235,8 +209,6 @@ int board_late_init(void)
 	if (!env_get("pcb")) {
 		if (gd->board_type == BOARD_TYPE_EV23X71A)
 			env_set("pcb", "lan9698_ev23x71a_0_at_lan969x");
-		if (gd->board_type == BOARD_TYPE_PCB8422)
-			env_set("pcb", "lan9664_ung8422_0_at_lan969x");
 		if (gd->board_type == BOARD_TYPE_SUNRISE)
 			env_set("pcb", "lan9664_sunrise_0_at_lan969x");
 		if (gd->board_type == BOARD_TYPE_PCB10001)
