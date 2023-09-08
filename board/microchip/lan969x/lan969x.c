@@ -97,7 +97,6 @@ int dram_init(void)
 static void do_board_detect(void)
 {
 	u32 val;
-	u32 tmp;
 
 	/* CPU_BUILDID != 0 on FPGA */
 	if (in_le32(CPU_BUILDID(LAN969X_CPU_BASE)) != 0) {
