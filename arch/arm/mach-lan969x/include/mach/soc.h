@@ -20,4 +20,6 @@ phys_size_t tfa_get_dram_size(void);
 
 boot_source_type_t tfa_get_boot_source(void);
 
+int tfa_get_board_number(void);
+
 #endif /* _LAN969X_SOC_H_ */

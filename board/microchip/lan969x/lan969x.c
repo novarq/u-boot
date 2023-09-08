@@ -21,8 +21,8 @@ DECLARE_GLOBAL_DATA_PTR;
 
 enum {
 	BOARD_TYPE_SUNRISE,
-	BOARD_TYPE_EV23X71A, /* PCB8398 */
-	BOARD_TYPE_PCB10001, /* SVB */
+	BOARD_TYPE_EV23X71A = 100, /* PCB8398 */
+	BOARD_TYPE_PCB10001 = 200, /* SVB */
 };
 
 static struct mm_region fa_mem_map[] = {
@@ -96,8 +96,6 @@ int dram_init(void)
 
 static void do_board_detect(void)
 {
-	u32 val;
-
 	/* CPU_BUILDID != 0 on FPGA */
 	if (in_le32(CPU_BUILDID(LAN969X_CPU_BASE)) != 0) {
 		/* Sunrise FPGA board */
@@ -105,17 +103,17 @@ static void do_board_detect(void)
 		return;
 	}
 
-	/* If GPIO 62 is low, regardless of the internal pull-up/pull-down then
-	 * this is ev23x71a board
-	 */
-	val = in_le32(GCB_GPIO_IN1(LAN969X_GCB_BASE));
-	if (!(val & BIT(62 - 32))) {
-		gd->board_type = BOARD_TYPE_EV23X71A;
-		return;
-	}
+	/* Probe TFA for board type */
+	gd->board_type = tfa_get_board_number();
 
-	/* Currently there is no other options so just use PCB10001 */
-	gd->board_type = BOARD_TYPE_PCB10001;
+	/* If SVB, just take that for face value */
+	if (gd->board_type == BOARD_TYPE_PCB10001)
+		return;
+
+	/* EVB is default board (for now) */
+	gd->board_type = BOARD_TYPE_EV23X71A;
+
+	return;
 }
 
 #if defined(CONFIG_MULTI_DTB_FIT)
