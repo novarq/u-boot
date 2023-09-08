@@ -195,11 +195,46 @@ static soc_strapping get_strapping(void)
 	return boot_mode;
 }
 
+static boot_source_type_t get_boot_source(void)
+{
+       boot_source_type_t boot_source;
+
+       switch (get_strapping()) {
+       case LAN966X_STRAP_BOOT_MMC:
+       case LAN966X_STRAP_BOOT_MMC_FC:
+       case LAN966X_STRAP_BOOT_MMC_TFAMON_FC:
+               boot_source = BOOT_SOURCE_EMMC;
+               break;
+       case LAN966X_STRAP_BOOT_QSPI:
+       case LAN966X_STRAP_BOOT_QSPI_FC:
+       case LAN966X_STRAP_BOOT_QSPI_TFAMON_FC:
+               boot_source = BOOT_SOURCE_QSPI;
+               break;
+       case LAN966X_STRAP_BOOT_SD:
+       case LAN966X_STRAP_BOOT_SD_FC:
+       case LAN966X_STRAP_BOOT_SD_TFAMON_FC:
+               boot_source = BOOT_SOURCE_SDMMC;
+               break;
+               /* These modes are not in LAN966X B0 */
+       default:
+               boot_source = BOOT_SOURCE_NONE;
+               break;
+       }
+
+       return boot_source;
+}
+
 int board_late_init(void)
 {
+	boot_source_type_t boot_source;
+
 	lan966x_otp_init();
 
-	switch (tfa_get_boot_source()) {
+	boot_source = tfa_get_boot_source();
+	if (boot_source == BOOT_SOURCE_NONE)
+		boot_source = get_boot_source();
+
+	switch (boot_source) {
 	case BOOT_SOURCE_EMMC:
 		env_set("boot_source", "mmc");
 		break;
@@ -489,35 +524,6 @@ void reset_cpu(void)
 		CPU_RESET_PROT_STAT);
 
 	REG_WR(GCB_SOFT_RST, GCB_SOFT_RST_SOFT_SWC_RST(1));
-}
-
-static boot_source_type_t get_boot_source(void)
-{
-       boot_source_type_t boot_source;
-
-       switch (get_strapping()) {
-       case LAN966X_STRAP_BOOT_MMC:
-       case LAN966X_STRAP_BOOT_MMC_FC:
-       case LAN966X_STRAP_BOOT_MMC_TFAMON_FC:
-               boot_source = BOOT_SOURCE_EMMC;
-               break;
-       case LAN966X_STRAP_BOOT_QSPI:
-       case LAN966X_STRAP_BOOT_QSPI_FC:
-       case LAN966X_STRAP_BOOT_QSPI_TFAMON_FC:
-               boot_source = BOOT_SOURCE_QSPI;
-               break;
-       case LAN966X_STRAP_BOOT_SD:
-       case LAN966X_STRAP_BOOT_SD_FC:
-       case LAN966X_STRAP_BOOT_SD_TFAMON_FC:
-               boot_source = BOOT_SOURCE_SDMMC;
-               break;
-               /* These modes are not in LAN966X B0 */
-       default:
-               boot_source = BOOT_SOURCE_NONE;
-               break;
-       }
-
-       return boot_source;
 }
 
 enum env_location env_get_location(enum env_operation op, int prio)
