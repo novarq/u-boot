@@ -12,6 +12,8 @@
 /* LAN969X defines */
 #define LAN969X_QSPI0_MMAP      UL(0x20000000)
 #define LAN969X_QSPI0_RANGE     SZ_16M
+#define LAN969X_SRAM_BASE       UL(0x00100000)
+#define LAN969X_SRAM_SIZE       SZ_2M
 #define LAN969X_DDR_BASE        UL(0x60000000)
 #define LAN969X_DDR_SIZE_DEF    (SZ_1G - (SZ_1G / 8)) /* ECC enabled cost 1/8th capacity */
 #define LAN969X_DDR_SIZE_MAX    SZ_2G

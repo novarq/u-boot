@@ -33,6 +33,12 @@ static struct mm_region fa_mem_map[] = {
                 .attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL) |
                          PTE_BLOCK_INNER_SHARE
         }, {
+                .virt = LAN969X_SRAM_BASE,
+                .phys = LAN969X_SRAM_BASE,
+                .size = LAN969X_SRAM_SIZE,
+                .attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL) |
+                         PTE_BLOCK_INNER_SHARE
+        }, {
                 .virt = LAN969X_QSPI0_MMAP,
                 .phys = LAN969X_QSPI0_MMAP,
                 .size = LAN969X_QSPI0_RANGE,
