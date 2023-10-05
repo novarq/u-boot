@@ -100,6 +100,19 @@ int dram_init(void)
 	return 0;
 }
 
+int dram_init_banksize(void)
+{
+	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
+	gd->bd->bi_dram[0].size = gd->ram_size;
+	/* First the lower half of SRAM */
+	gd->bd->bi_dram[1].start = LAN969X_SRAM_BASE;
+	gd->bd->bi_dram[1].size = SZ_1M;
+	/* Upper half of SRAM has 1st 128K reserved for BL31 */
+	gd->bd->bi_dram[2].start = LAN969X_SRAM_BASE + SZ_1M + SZ_128K;
+	gd->bd->bi_dram[2].size = SZ_1M - SZ_128K;
+	return 0;
+}
+
 static void do_board_detect(void)
 {
 	/* CPU_BUILDID != 0 on FPGA */
