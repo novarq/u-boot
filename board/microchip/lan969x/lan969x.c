@@ -17,6 +17,8 @@
 #include <asm/arch/lan969x_targets_a0.h>
 #include <asm/arch/lan969x_regs_a0.h>
 
+#include "lan969x.h"
+
 DECLARE_GLOBAL_DATA_PTR;
 
 enum {
@@ -208,6 +210,8 @@ int board_init(void)
 
 int board_late_init(void)
 {
+	lan969x_otp_init();
+
 	switch (tfa_get_boot_source()) {
 	case BOOT_SOURCE_EMMC:
 		env_set("boot_source", "mmc");
@@ -229,6 +233,37 @@ int board_late_init(void)
 			env_set("pcb", "lan9664_sunrise_0_at_lan969x");
 		if (gd->board_type == BOARD_TYPE_PCB10001)
 			env_set("pcb", "lan9668_pcb10001_0_at_lan969x");
+	}
+
+	if (!env_get("mac_count")) {
+		char text[20];
+		if (lan969x_otp_get_mac_count(text))
+			env_set("mac_count", text);
+	}
+
+	if (!env_get("ethaddr")) {
+		u8 mac[6];
+
+		if (lan969x_otp_get_mac(mac)) {
+			u8 ethaddr[10];
+			u8 count = 0;
+			u8 i;
+
+			if (gd->board_type == BOARD_TYPE_EV23X71A)
+				count = 30;
+
+			for (i = 0; i < count; ++i) {
+				mac[5] = i + 1;
+
+				memset(ethaddr, 0, 10);
+				if (i == 0)
+					memcpy(ethaddr, "ethaddr", 7);
+				else
+					sprintf(ethaddr, "eth%daddr", i);
+
+				eth_env_set_enetaddr(ethaddr, mac);
+			}
+		}
 	}
 
 	return 0;
