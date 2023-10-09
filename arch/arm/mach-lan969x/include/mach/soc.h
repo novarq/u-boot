@@ -22,4 +22,6 @@ boot_source_type_t tfa_get_boot_source(void);
 
 int tfa_get_board_number(void);
 
+phys_size_t tfa_get_sram_info(int ix, phys_addr_t *start);
+
 #endif /* _LAN969X_SOC_H_ */
