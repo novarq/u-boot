@@ -867,6 +867,8 @@ static void dhcp_process_options(uchar *popt, uchar *end)
 				net_copy_ip(&net_dns_server2, (popt + 2 + 4));
 #endif
 			break;
+		case 7:		/* Ignore Log Server */
+			break;
 		case 12:
 			size = truncate_sz("Host Name",
 				sizeof(net_hostname), oplen);
