@@ -8,8 +8,8 @@
 	compatible = "microchip,lan966x";
 
 	config {
-		u-boot,mmc-env-offset		= <0x10008000>;
-		u-boot,mmc-env-offset-redundant = <0x10208000>;
+		u-boot,mmc-env-offset		= <0x10100000>;
+		u-boot,mmc-env-offset-redundant = <0x10300000>;
 	};
 
 	lan966x_clk: lan966x_clk@e00c00a8 {
