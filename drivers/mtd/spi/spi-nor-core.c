@@ -588,15 +588,6 @@ static int write_enable(struct spi_nor *nor)
 }
 
 /*
- * Set write protection unblock command.
- * Returns negative if error occurred.
- */
-static int write_protection_block(struct spi_nor *nor)
-{
-	return nor->write_reg(nor, 0x98, NULL, 0);
-}
-
-/*
  * Send write disable instruction to the chip.
  */
 static int write_disable(struct spi_nor *nor)
@@ -3877,6 +3868,12 @@ static int spi_nor_init(struct spi_nor *nor)
 		spi_nor_wait_till_ready(nor);
 	}
 
+	if (IS_ENABLED(CONFIG_SPI_FLASH_UNLOCK_ALL) &&
+	    nor->info->flags & SPI_NOR_HAS_SST26LOCK) {
+		nor->flash_unlock(nor, 0,
+				  nor->info->sector_size * nor->info->n_sectors);
+	}
+
 	if (nor->quad_enable) {
 		err = nor->quad_enable(nor);
 		if (err) {
@@ -4186,9 +4183,6 @@ int spi_nor_scan(struct spi_nor *nor)
 	ret = spi_nor_init(nor);
 	if (ret)
 		return ret;
-
-	if (JEDEC_MFR(info) == SNOR_MFR_SST)
-		write_protection_block(nor);
 
 	nor->rdsr_dummy = params.rdsr_dummy;
 	nor->rdsr_addr_nbytes = params.rdsr_addr_nbytes;
