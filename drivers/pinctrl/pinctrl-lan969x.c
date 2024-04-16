@@ -130,8 +130,8 @@ LAN969X_P(35,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NON
 LAN969X_P(36,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
 LAN969X_P(37,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
 LAN969X_P(38,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(39,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(40,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
+LAN969X_P(39,   GPIO,    NONE,     NONE,      MIIM,     NONE,     NONE,      NONE,        R);
+LAN969X_P(40,   GPIO,    NONE,     NONE,      MIIM,     NONE,     NONE,      NONE,        R);
 LAN969X_P(41,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
 LAN969X_P(42,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
 LAN969X_P(43,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
