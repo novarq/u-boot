@@ -1538,7 +1538,8 @@ dtb-$(CONFIG_TARGET_CORSTONE1000) += corstone1000-mps3.dtb \
 dtb-$(CONFIG_TARGET_LAN969X) += \
 	lan969x_sr.dtb		\
 	lan969x_ev23x71a.dtb	\
-	lan969x_pcb10001.dtb
+	lan969x_pcb10001.dtb	\
+	lan969x_ev09p11a.dtb
 
 include $(srctree)/scripts/Makefile.dts
 

@@ -13,4 +13,10 @@ config SYS_SOC
 config SYS_CONFIG_NAME
 	default "lan969x"
 
+config TARGET_LAN969X_SRAM
+	bool "Enable lan969x target for running in SRAM only"
+	default n
+	help
+	  Enable u-boot to run only in SRAM
+
 endif

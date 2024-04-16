@@ -25,6 +25,7 @@ enum {
 	BOARD_TYPE_SUNRISE,
 	BOARD_TYPE_EV23X71A = 100, /* PCB8398 */
 	BOARD_TYPE_PCB10001 = 200, /* SVB */
+	BOARD_TYPE_EV09P11A = 300,
 };
 
 static struct mm_region fa_mem_map[] = {
@@ -96,7 +97,8 @@ int dram_init(void)
 	gd->ram_size = tfa_get_dram_size();
 
 	/* Fall-back to compile-time default */
-	if (!gd->ram_size)
+	if (!gd->ram_size ||
+	    gd->board_type == BOARD_TYPE_EV09P11A)
 		gd->ram_size = LAN969X_DDR_SIZE_DEF;
 
 	return 0;
@@ -115,7 +117,8 @@ int dram_init_banksize(void)
 	phys_size_t size;
 
 	/* Add DDR */
-	add_memory_bank(bankno++, PHYS_SDRAM_1, gd->ram_size);
+	if (gd->board_type != BOARD_TYPE_EV09P11A)
+		add_memory_bank(bankno++, PHYS_SDRAM_1, gd->ram_size);
 
 	/* First the lower half of SRAM */
 	size = tfa_get_sram_info(0, &start);
@@ -151,6 +154,10 @@ static void do_board_detect(void)
 	/* EVB is default board (for now) */
 	gd->board_type = BOARD_TYPE_EV23X71A;
 
+#ifdef CONFIG_TARGET_LAN969X_SRAM
+	gd->board_type = BOARD_TYPE_EV09P11A;
+#endif
+
 	return;
 }
 
@@ -166,6 +173,10 @@ int board_fit_config_name_match(const char *name)
 
 	if (gd->board_type == BOARD_TYPE_EV23X71A &&
 	    strcmp(name, "lan969x_ev23x71a") == 0)
+		return 0;
+
+	if (gd->board_type == BOARD_TYPE_EV09P11A &&
+	    strcmp(name, "lan969x_ev09p11a") == 0)
 		return 0;
 
 	if (gd->board_type == BOARD_TYPE_PCB10001 &&
@@ -217,10 +228,45 @@ static int lan969x_ev23x71a_board_init(void)
 	return 0;
 }
 
+static int lan969x_ev09p11a_board_init(void)
+{
+	u32 val;
+
+	/* Release the reset of the PHYs, for the lan8814 PHYs.
+	 * For the lan8840 PHY, it gets out of reset when chip gets out
+	 * of reset
+	 */
+	val = in_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 0));
+	val &= ~BIT(1);
+	out_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 0), val);
+
+	val = in_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 1));
+	val &= ~BIT(1);
+	out_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 1), val);
+
+	val = in_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 2));
+	val &= ~BIT(1);
+	out_le32(GCB_GPIO_ALT(LAN969X_GCB_BASE, 2), val);
+
+	val = in_le32(GCB_GPIO_OE(LAN969X_GCB_BASE));
+	val |= BIT(1);
+	out_le32(GCB_GPIO_OE(LAN969X_GCB_BASE), val);
+
+	val = in_le32(GCB_GPIO_OUT_SET(LAN969X_GCB_BASE));
+	val |= BIT(1);
+	out_le32(GCB_GPIO_OUT_SET(LAN969X_GCB_BASE), val);
+
+	//gpio_direction_output(2, 1);
+	return 0;
+}
+
 int board_init(void)
 {
 	if (gd->board_type == BOARD_TYPE_EV23X71A)
 		return lan969x_ev23x71a_board_init();
+
+	if (gd->board_type == BOARD_TYPE_EV09P11A)
+		return lan969x_ev09p11a_board_init();
 
 	return 0;
 }
@@ -250,6 +296,8 @@ int board_late_init(void)
 			env_set("pcb", "lan9664_sunrise_0_at_lan969x");
 		if (gd->board_type == BOARD_TYPE_PCB10001)
 			env_set("pcb", "lan9668_pcb10001_0_at_lan969x");
+		if (gd->board_type == BOARD_TYPE_EV09P11A)
+			env_set("pcb", "lan9692_ev09p11a_0_at_lan969x");
 	}
 
 	if (!env_get("mac_count")) {
@@ -268,6 +316,9 @@ int board_late_init(void)
 
 			if (gd->board_type == BOARD_TYPE_EV23X71A)
 				count = 30;
+
+			if (gd->board_type == BOARD_TYPE_EV09P11A)
+				count = 11;
 
 			for (i = 0; i < count; ++i) {
 				mac[5] = i + 1;
