@@ -26,6 +26,7 @@ enum {
 	BOARD_TYPE_EV23X71A = 100, /* PCB8398 */
 	BOARD_TYPE_PCB10001 = 200, /* SVB */
 	BOARD_TYPE_EV09P11A = 300,
+	BOARD_TYPE_EV89P81A = 400, /* UNG8422 */
 };
 
 static struct mm_region fa_mem_map[] = {
@@ -137,6 +138,8 @@ int dram_init_banksize(void)
 
 static void do_board_detect(void)
 {
+	u32 val;
+
 	/* CPU_BUILDID != 0 on FPGA */
 	if (in_le32(CPU_BUILDID(LAN969X_CPU_BASE)) != 0) {
 		/* Sunrise FPGA board */
@@ -151,12 +154,40 @@ static void do_board_detect(void)
 	if (gd->board_type == BOARD_TYPE_PCB10001)
 		return;
 
-	/* EVB is default board (for now) */
-	gd->board_type = BOARD_TYPE_EV23X71A;
-
 #ifdef CONFIG_TARGET_LAN969X_SRAM
 	gd->board_type = BOARD_TYPE_EV09P11A;
+	return;
 #endif
+
+	/* As there are 2 EVB boards, it is required to distinguish between
+	 * them. The logi is as following:
+	 * set GPIO 62 as input and read the value of the GPIO:
+	 * - if read a 0 it means that is BOARD_TYPE_EV23X71A
+	 * - if read a 1 it means that is BOARD_TYPE_EV89P81A
+	 */
+	val = in_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 0));
+	val &= ~BIT(62 - 32);
+	out_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 0), val);
+
+	val = in_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 1));
+	val &= ~BIT(62 - 32);
+	out_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 1), val);
+
+	val = in_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 2));
+	val &= ~BIT(62 - 32);
+	out_le32(GCB_GPIO_ALT1(LAN969X_GCB_BASE, 2), val);
+
+	val = in_le32(GCB_GPIO_OE1(LAN969X_GCB_BASE));
+	val &= ~BIT(62 - 32);
+	out_le32(GCB_GPIO_OE1(LAN969X_GCB_BASE), val);
+
+	val = in_le32(GCB_GPIO_IN1(LAN969X_GCB_BASE));
+	val &= BIT(62 - 32);
+
+	if (val != 0)
+	    gd->board_type = BOARD_TYPE_EV89P81A;
+	else
+	    gd->board_type = BOARD_TYPE_EV23X71A;
 
 	return;
 }
@@ -173,6 +204,10 @@ int board_fit_config_name_match(const char *name)
 
 	if (gd->board_type == BOARD_TYPE_EV23X71A &&
 	    strcmp(name, "lan969x_ev23x71a") == 0)
+		return 0;
+
+	if (gd->board_type == BOARD_TYPE_EV89P81A &&
+	    strcmp(name, "lan969x_ev89p81a") == 0)
 		return 0;
 
 	if (gd->board_type == BOARD_TYPE_EV09P11A &&
@@ -292,6 +327,8 @@ int board_late_init(void)
 	if (!env_get("pcb")) {
 		if (gd->board_type == BOARD_TYPE_EV23X71A)
 			env_set("pcb", "lan9698_ev23x71a_0_at_lan969x");
+		if (gd->board_type == BOARD_TYPE_EV89P81A)
+			env_set("pcb", "lan9698_ev89p81a_0_at_lan969x");
 		if (gd->board_type == BOARD_TYPE_SUNRISE)
 			env_set("pcb", "lan9664_sunrise_0_at_lan969x");
 		if (gd->board_type == BOARD_TYPE_PCB10001)
@@ -316,6 +353,9 @@ int board_late_init(void)
 
 			if (gd->board_type == BOARD_TYPE_EV23X71A)
 				count = 30;
+
+			if (gd->board_type == BOARD_TYPE_EV89P81A)
+				count = 11;
 
 			if (gd->board_type == BOARD_TYPE_EV09P11A)
 				count = 11;
