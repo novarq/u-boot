@@ -182,49 +182,6 @@ static int vsc8601_config(struct phy_device *phydev)
 	return genphy_config_aneg(phydev);
 }
 
-static int vsc8574_config(struct phy_device *phydev)
-{
-	u32 val;
-	/* configure register 19G for MAC */
-	phy_write(phydev, MDIO_DEVAD_NONE, PHY_EXT_PAGE_ACCESS,
-		  PHY_EXT_PAGE_ACCESS_GENERAL);
-
-	val = phy_read(phydev, MDIO_DEVAD_NONE, MIIM_VSC8574_GENERAL19);
-	if (phydev->interface == PHY_INTERFACE_MODE_QSGMII) {
-		/* set bit 15:14 to '01' for QSGMII mode */
-		val = (val & 0x3fff) | (1 << 14);
-		phy_write(phydev, MDIO_DEVAD_NONE,
-			  MIIM_VSC8574_GENERAL19, val);
-		/* Enable 4 ports MAC QSGMII */
-		phy_write(phydev, MDIO_DEVAD_NONE, MIIM_VSC8574_GENERAL18,
-			  MIIM_VSC8574_18G_QSGMII);
-	} else {
-		/* set bit 15:14 to '00' for SGMII mode */
-		val = val & 0x3fff;
-		phy_write(phydev, MDIO_DEVAD_NONE, MIIM_VSC8574_GENERAL19, val);
-		/* Enable 4 ports MAC SGMII */
-		phy_write(phydev, MDIO_DEVAD_NONE, MIIM_VSC8574_GENERAL18,
-			  MIIM_VSC8574_18G_SGMII);
-	}
-	val = phy_read(phydev, MDIO_DEVAD_NONE, MIIM_VSC8574_GENERAL18);
-	/* When bit 15 is cleared the command has completed */
-	while (val & MIIM_VSC8574_18G_CMDSTAT)
-		val = phy_read(phydev, MDIO_DEVAD_NONE, MIIM_VSC8574_GENERAL18);
-
-	/* Enable Serdes Auto-negotiation */
-	phy_write(phydev, MDIO_DEVAD_NONE, PHY_EXT_PAGE_ACCESS,
-		  PHY_EXT_PAGE_ACCESS_EXTENDED3);
-	val = phy_read(phydev, MDIO_DEVAD_NONE, MIIM_VSC8574_MAC_SERDES_CON);
-	val = val | MIIM_VSC8574_MAC_SERDES_ANEG;
-	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_VSC8574_MAC_SERDES_CON, val);
-
-	phy_write(phydev, MDIO_DEVAD_NONE, PHY_EXT_PAGE_ACCESS, 0);
-
-	genphy_config_aneg(phydev);
-
-	return 0;
-}
-
 static int vsc8514_config(struct phy_device *phydev)
 {
 	u32 val;
@@ -347,32 +304,12 @@ U_BOOT_PHY_DRIVER(vsc8234) = {
 	.shutdown = &genphy_shutdown,
 };
 
-U_BOOT_PHY_DRIVER(vsc8574) = {
-	.name = "Vitesse VSC8574",
-	.uid = 0x704a0,
-	.mask = 0xffff0,
-	.features = PHY_GBIT_FEATURES,
-	.config = &vsc8574_config,
-	.startup = &vitesse_startup,
-	.shutdown = &genphy_shutdown,
-};
-
 U_BOOT_PHY_DRIVER(vsc8514) = {
 	.name = "Vitesse VSC8514",
 	.uid = 0x70670,
 	.mask = 0xffff0,
 	.features = PHY_GBIT_FEATURES,
 	.config = &vsc8514_config,
-	.startup = &vitesse_startup,
-	.shutdown = &genphy_shutdown,
-};
-
-U_BOOT_PHY_DRIVER(vsc8584) = {
-	.name = "Vitesse VSC8584",
-	.uid = 0x707c0,
-	.mask = 0xffff0,
-	.features = PHY_GBIT_FEATURES,
-	.config = &vsc8574_config,
 	.startup = &vitesse_startup,
 	.shutdown = &genphy_shutdown,
 };
