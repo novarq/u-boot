@@ -7,13 +7,11 @@
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
 		clock-frequency = <20000000>;
-		u-boot,dm-pre-reloc;
 	};
 
 	clks: fixed_clks {
 		compatible = "fixed-clock";
 		#clock-cells = <1>;
 		clock-frequency = <24000000>;  // FPGA clocks fixed @ 24MHz
-		u-boot,dm-pre-reloc;
 	};
 };

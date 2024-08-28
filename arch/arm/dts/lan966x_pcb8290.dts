@@ -12,12 +12,10 @@
 		apb {
 			usb_uart0: serial@e0808000 {
 				status = "okay";
-				u-boot,dm-pre-reloc;
 			};
 
 			uart0: serial@e0040200 {
 				status = "okay";
-				u-boot,dm-pre-reloc;
 			};
 
 			sdhci0: sdhci-host@e0830000 {
@@ -36,7 +34,6 @@
 					compatible = "jedec,spi-nor";
 					reg = <0>;
 					spi-max-frequency = <20000000>;
-					u-boot,dm-pre-reloc;
 				};
 			};
 

@@ -16,14 +16,12 @@
 		compatible = "mchp,lan966x-clk";
 		reg = <0xe00c00a8 0x38>;
 		#clock-cells = <1>;
-		u-boot,dm-pre-reloc;
 	};
 
 	fabric_clk: fabric_clk {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
 		clock-frequency = <200000000>;
-		u-boot,dm-pre-reloc;
 	};
 
 	ahb {
@@ -42,12 +40,10 @@
 				gpio-controller;
 				#gpio-cells = <2>;
 				gpio-ranges = <&gpio 0 0 78>;
-				u-boot,dm-pre-reloc;
 
 				fc3_b_pins: fc3_uart_pins {
 					pins = "GPIO_51", "GPIO_52", "GPIO_53";
 					function = "fc3_b";
-					u-boot,dm-pre-reloc;
 				};
 
 				fc0_b_pins: fc0_uart_pins {

@@ -12,12 +12,10 @@
 		apb {
 			uart0: serial@e0040200 {
 				status = "okay";
-				u-boot,dm-pre-reloc;
 			};
 
 			uart3: serial@e0064200 {
 				status = "okay";
-				u-boot,dm-pre-reloc;
 			};
 
 			sdhci0: sdhci-host@e0830000 {

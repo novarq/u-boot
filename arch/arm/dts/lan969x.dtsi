@@ -3,7 +3,6 @@
 
 / {
 	chosen {
-		u-boot,dm-pre-reloc;
 		stdout-path = &uart0;
 	};
 
@@ -32,13 +31,11 @@
 		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <1>;
-		u-boot,dm-pre-reloc;
 
 		apb {
 			compatible = "simple-bus";
 			#address-cells = <1>;
 			#size-cells = <1>;
-			u-boot,dm-pre-reloc;
 
 			gpio: pinctrl@e20100d4 {
 				compatible = "mchp,lan969x-pinctrl";
@@ -77,7 +74,6 @@
 			};
 
 			uart0: serial@e0040200 {
-				u-boot,dm-pre-reloc;
 				compatible = "atmel,at91sam9260-usart";
 				reg = <0xE0040200 0x108>;
 				clocks = <&fabric_clk>;
@@ -86,7 +82,6 @@
 			};
 
 			sdhci0: sdhci-host@e0830000 {
-				u-boot,dm-pre-reloc;
 				compatible = "microchip,lan969x-sdhci";
 				reg = <0xE0830000 0x00000300>;
 				clocks = <&clks CLK_ID_SDMMC0>, <&clks CLK_ID_SDMMC0>;
@@ -96,7 +91,6 @@
 			};
 
 			emmc: emmc@e0830000 {
-				u-boot,dm-pre-reloc;
 				compatible = "microchip,lan969x-sdhci";
 				reg = <0xE0830000 0x00000300>;
 				bus-width = <4>;
@@ -106,7 +100,6 @@
 			};
 
 			qspi: qspi@e0834000 {
-				u-boot,dm-pre-reloc;
 				compatible = "microchip,lan969x-qspi";
 				reg = <0xE0804000 0x00000100>,
 				      <0x20000000 0x08000000>,

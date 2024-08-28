@@ -36,7 +36,6 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 		spi-max-frequency = <104000000>;
-		u-boot,dm-pre-reloc;
 		m25p,fast-read;
 		spi-tx-bus-width = <1>;
 		spi-rx-bus-width = <4>;
