@@ -28,11 +28,13 @@
 		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <1>;
+		bootph-all;
 
 		apb {
 			compatible = "simple-bus";
 			#address-cells = <1>;
 			#size-cells = <1>;
+			bootph-all;
 
 			gpio: pinctrl@e0000000 {
 				compatible = "mchp,lan966x-pinctrl";
@@ -40,10 +42,12 @@
 				gpio-controller;
 				#gpio-cells = <2>;
 				gpio-ranges = <&gpio 0 0 78>;
+				bootph-all;
 
 				fc3_b_pins: fc3_uart_pins {
 					pins = "GPIO_51", "GPIO_52", "GPIO_53";
 					function = "fc3_b";
+					bootph-all;
 				};
 
 				fc0_b_pins: fc0_uart_pins {
