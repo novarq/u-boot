@@ -406,6 +406,7 @@ const struct flash_info spi_nor_ids[] = {
 	{ INFO("sst26wf016b", 0xbf2651, 0, 64 * 1024,  32, SECT_4K | SPI_NOR_HAS_SST26LOCK | SPI_NOR_QUAD_READ) },
 	{ INFO("sst26wf032",  0xbf2622, 0, 64 * 1024,  64, SECT_4K | SPI_NOR_HAS_SST26LOCK) },
 	{ INFO("sst26wf064",  0xbf2643, 0, 64 * 1024, 128, SECT_4K | SPI_NOR_HAS_SST26LOCK) },
+	{ INFO("sst26wf064c", 0xbf2653, 0, 64 * 1024, 128, SECT_4K | SPI_NOR_HAS_SST26LOCK | SPI_NOR_QUAD_READ) },
 #endif
 #ifdef CONFIG_SPI_FLASH_STMICRO		/* STMICRO */
 	/* STMicroelectronics -- newer production may have feature updates */
