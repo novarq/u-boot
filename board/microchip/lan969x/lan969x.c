@@ -57,6 +57,13 @@ static struct mm_region fa_mem_map[] = {
                          PTE_BLOCK_NON_SHARE |
                          PTE_BLOCK_PXN | PTE_BLOCK_UXN
         }, {
+                .virt = LAN969X_USB_BASE,
+                .phys = LAN969X_USB_BASE,
+                .size = LAN969X_USB_SIZE,
+                .attrs = PTE_BLOCK_MEMTYPE(MT_DEVICE_NGNRNE) |
+                         PTE_BLOCK_NON_SHARE |
+                         PTE_BLOCK_PXN | PTE_BLOCK_UXN
+        }, {
                 /* List terminator */
                 0,
         }
