@@ -79,7 +79,7 @@ enum env_location env_get_location(enum env_operation op, int prio)
 	}
 }
 
-void reset_cpu(void)
+__weak void reset_cpu(void)
 {
 	clrbits_le32(CPU_RESET_PROT_STAT(LAN969X_CPU_BASE),
 		     CPU_RESET_PROT_STAT_SYS_RST_PROT_VCORE_M);
