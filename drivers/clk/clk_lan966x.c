@@ -13,24 +13,53 @@
 #define GCK_SRC_SEL     GENMASK(9, 8)
 #define GCK_PRESCALER   GENMASK(23, 16)
 
+struct lan966x_soc_clk_gate_desc {
+	const char *name;
+	int bit_idx;
+};
+
+static const struct lan966x_soc_clk_gate_desc lan966x_clk_gate_desc[] = {
+	{ "uhphs", 11 },
+	{ "udphs", 10 },
+	{ "mcramc", 9 },
+	{ "hmatrix", 8 },
+	{ }
+};
+
+static const struct lan966x_soc_clk_gate_desc lan969x_clk_gate_desc[] = {
+	{ "usb_drd", 10 },
+	{ "mcramc", 9 },
+	{ "hmatrix", 8 },
+	{ }
+};
+
 struct lan966x_clk {
 	void *base;
+	void *gate;
 	int clk_cnt;
+	int clk_gate_cnt;
+	const struct lan966x_soc_clk_gate_desc *clk_gate_desc;
 	ulong parent_rate;
 };
 
 struct lan966x_driver_data {
 	int clk_cnt;
+	int clk_gate_cnt;
+	const struct lan966x_soc_clk_gate_desc *clk_gate_desc;
 	ulong parent_rate;
 };
 
 static struct lan966x_driver_data lan966x_data = {
 	.clk_cnt = 14,
+	.clk_gate_cnt = 4,
+	.clk_gate_desc = lan966x_clk_gate_desc,
 	.parent_rate = 600000000,
 };
 
 static struct lan966x_driver_data lan969x_data = {
 	.clk_cnt = 12,
+	.clk_gate_cnt = 3,
+	.clk_gate_desc = lan969x_clk_gate_desc,
 	.parent_rate = 1000000000,
 };
 
@@ -85,8 +114,19 @@ static int lan966x_clk_enable(struct clk *clk)
 {
 	struct lan966x_clk *gck = dev_get_priv(clk->dev);
 
-	if (clk->id >= gck->clk_cnt)
-		return -ENODEV;
+	if (clk->id >= gck->clk_cnt) {
+		/* If there are no gate clock then this is not allowed */
+		if (gck->gate == NULL)
+			return -ENODEV;
+
+		if (clk->id >= gck->clk_cnt + gck->clk_gate_cnt)
+			return -ENODEV;
+
+		setbits_le32(gck->gate,
+			     BIT(gck->clk_gate_desc[clk->id - gck->clk_cnt].bit_idx));
+
+		return 0;
+	}
 
 	setbits_le32(lan966x_clk_ctlreg(gck, clk->id), GCK_ENA);
 
@@ -97,8 +137,18 @@ static int lan966x_clk_disable(struct clk *clk)
 {
 	struct lan966x_clk *gck = dev_get_priv(clk->dev);
 
-	if (clk->id >= gck->clk_cnt)
-		return -ENODEV;
+	if (clk->id >= gck->clk_cnt) {
+		/* If there are no gate clock then this is not allowed */
+		if (gck->gate == NULL)
+			return -ENODEV;
+
+		if (clk->id >= gck->clk_cnt + gck->clk_gate_cnt)
+			return -ENODEV;
+
+		clrbits_le32(gck->gate, BIT(gck->clk_gate_desc[clk->id - gck->clk_cnt].bit_idx));
+
+		return 0;
+	}
 
 	clrbits_le32(lan966x_clk_ctlreg(gck, clk->id), GCK_ENA);
 
@@ -114,9 +164,13 @@ static int lan966x_clk_probe(struct udevice *dev)
 	if (IS_ERR(priv->base))
 		return PTR_ERR(priv->base);
 
+	priv->gate = dev_remap_addr_index(dev, 1);
+
 	/* Get clock count for target device */
 	data = (struct lan966x_driver_data*)dev_get_driver_data(dev);
 	priv->clk_cnt = data->clk_cnt;
+	priv->clk_gate_cnt = data->clk_gate_cnt;
+	priv->clk_gate_desc = data->clk_gate_desc;
 	priv->parent_rate = data->parent_rate;
 
 	return 0;
