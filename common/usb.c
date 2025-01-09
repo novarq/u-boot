@@ -1113,8 +1113,10 @@ int usb_select_config(struct usb_device *dev)
 		tmpbuf = (unsigned char *)malloc_cache_aligned(err);
 		if (!tmpbuf)
 			err = -ENOMEM;
-		else
+		else {
+			mdelay(1);
 			err = usb_get_configuration_no(dev, 0, tmpbuf, err);
+		}
 	}
 	if (err < 0) {
 		printf("usb_new_device: Cannot read configuration, " \
