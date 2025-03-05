@@ -211,7 +211,8 @@
 				      <0xe30cc000 0x4000>,   // DEV2G5_26
 				      <0xe30d8000 0x4000>,   // DEV2G5_27
 				      <0xe30e4000 0x4000>,   // DEV2G5_28 (RGMII)
-				      <0xe30e8000 0x4000>;   // DEV2G5_29 (RGMII)
+				      <0xe30e8000 0x4000>,   // DEV2G5_29 (RGMII)
+				      <0xe3410000 0x150000>; // SERDES
 				reg-names =
 				      "ana_ac", "ana_cl", "ana_l2", "ana_l3",
 				      "asm", "lrn", "qfwd", "qs",
@@ -225,6 +226,7 @@
 				      "port19", "port20", "port21", "port22", "port23",
 				      "port24", "port25", "port26", "port27", "port28",
 				      "port29";
+				clocks = <&fabric_clk>;
 
 				status = "disabled";
 				ethernet-ports {

@@ -19,11 +19,10 @@
 #include <wait_bit.h>
 #include <command.h>
 
+#include "sparx5_switch.h"
+
 #include "sparx5_regs.h"
 #include "sparx5_reg_offset.h"
-
-#include "mscc_xfer.h"
-#include "mscc_miim.h"
 
 #include <dt-bindings/mscc/sparx5_data.h>
 
@@ -114,33 +113,6 @@ enum {
 	SERDES_ARG_MAX,
 };
 
-enum {
-	SPARX5_TARGET,
-	LAN969X_TARGET,
-};
-
-struct sparx5_regs {
-	const unsigned int *reggrp_addr;
-	const unsigned int *reggrp_cnt;
-	const unsigned int *reggrp_size;
-	const unsigned int *reg_addr;
-	const unsigned int *reg_cnt;
-	const unsigned int *regfield_addr;
-};
-
-struct mscc_match_data {
-	const char * const *reg_names;
-	struct sparx5_regs regs;
-	u8 num_regs;
-	u8 num_ports;
-	u8 num_bus;
-	u8 cpu_port;
-	u8 npi_port;
-	u8 ifh_len;
-	u8 num_cal_auto;
-	u8 target;
-};
-
 static struct mscc_match_data mscc_sparx5_data = {
 	.reg_names = sparx5_reg_names,
 	.regs = {
@@ -179,26 +151,6 @@ static struct mscc_match_data mscc_lan969x_data = {
 	.ifh_len = 9,
 	.num_cal_auto = 4,
 	.target = LAN969X_TARGET,
-};
-
-struct sparx5_phy_port {
-	bool active;
-	struct mii_dev *bus;
-	u8 phy_addr;
-	struct phy_device *phy;
-	u32 mac_type;
-	u32 serdes_type;
-	u32 serdes_index;
-};
-
-struct sparx5_private {
-	struct mscc_match_data *data;
-
-	void __iomem **regs;
-	struct mii_dev **bus;
-	struct mscc_miim_dev *miim;
-	struct sparx5_phy_port *ports;
-	struct udevice *dev;
 };
 
 /* Keep the id, tinst and tcnt just to be able to use the same macros
@@ -242,15 +194,6 @@ static void __iomem *spx5_offset(struct sparx5_private *priv,
 {
 	return priv->regs[id + tinst] + gbase + ((ginst) * gwidth) + raddr + ((rinst) * rwidth);
 }
-
-extern void sparx5_serdes_port_init(int port,
-				     u32 mac_type,
-				     u32 serdes_type,
-				     u32 serdes_idx);
-
-extern void sparx5_serdes_cmu_init(void);
-
-extern void sparx5_serdes_init(void);
 
 static int ram_init(void __iomem *addr)
 {
@@ -508,45 +451,41 @@ static void sparx5_switch_config(struct sparx5_private *priv)
 		spx5_wr(0xfff, priv, PORT_CONF_DEV10G_MODES);
 
 	if (priv->data->target == LAN969X_TARGET)
-		spx5_wr(0x0f117001, priv, PORT_CONF_DEV10G_MODES);
+		spx5_wr(0x00117001, priv, PORT_CONF_DEV10G_MODES);
 
 	for (i = 0; i < priv->data->num_ports; i++) {
 		struct sparx5_phy_port *p = &priv->ports[i];
 
-		if (!p->active)
-			continue;
-
-		/* Enable 10G shadow interfaces */
-		spx5_rmw(DSM_DEV_TX_STOP_WM_CFG_DEV10G_SHADOW_ENA_SET(1),
-			 DSM_DEV_TX_STOP_WM_CFG_DEV10G_SHADOW_ENA,
-			 priv, DSM_DEV_TX_STOP_WM_CFG(i));
-
-		/* Enable shadow 5G interfaces */
-		if (priv->data->target == SPARX5_TARGET &&
-		    p->mac_type == IF_QSGMII && i < 12)
-			spx5_rmw(BIT(i), BIT(i),
-				 priv, PORT_CONF_DEV5G_MODES);
-
-		/* MUXing for QSGMII */
-		if (p->mac_type == IF_QSGMII)
-			spx5_rmw(BIT((i - i % 4) / 4), BIT((i - i % 4) / 4),
-				 priv, PORT_CONF_QSGMII_ENA);
-
-		if (priv->data->target == SPARX5_TARGET &&
-		    p->mac_type == IF_QSGMII) {
-			if ((i / 4 % 2) == 0) {
-				/* Affects d0-d3,d8-d11..d40-d43 */
-				spx5_wr(0x332, priv, PORT_CONF_USGMII_CFG(i / 8));
-			}
+		if (p->active) {
+			/* Enable 10G shadow interfaces */
+			spx5_rmw(DSM_DEV_TX_STOP_WM_CFG_DEV10G_SHADOW_ENA_SET(1),
+				 DSM_DEV_TX_STOP_WM_CFG_DEV10G_SHADOW_ENA,
+				 priv, DSM_DEV_TX_STOP_WM_CFG(i));
 		}
 
 		if (p->mac_type == IF_QSGMII) {
-			u32 p = (i / 4) * 4;
-			for (u32 cnt = 0; cnt < 4; cnt++) {
-				/* Must take the PCS out of reset for all 4 QSGMII instances */
+			/* Enable the QSGMII interface */
+			u32 val = spx5_rd(priv, PORT_CONF_QSGMII_ENA);
+			val |= BIT(i / 4);
+			spx5_wr(val, priv, PORT_CONF_QSGMII_ENA);
+
+			/* Must take the PCS out of reset for all 4 QSGMII instances,
+			 */
+			for (u32 cnt = 0; cnt < 4; ++cnt) {
+				u32 base = (i / 4) * 4;
 				spx5_rmw(DEV2G5_DEV_RST_CTRL_PCS_TX_RST_SET(0),
-					 DEV2G5_DEV_RST_CTRL_PCS_TX_RST,
-					 priv, DEV2G5_DEV_RST_CTRL(p + cnt));
+						 DEV2G5_DEV_RST_CTRL_PCS_TX_RST,
+						 priv, DEV2G5_DEV_RST_CTRL(base + cnt));
+			}
+
+			if (priv->data->target == SPARX5_TARGET) {
+				if (i < 12)
+					spx5_rmw(BIT(i), BIT(i),
+						priv, PORT_CONF_DEV5G_MODES);
+
+				if ((i / 4 % 2) == 0)
+					/* Affects d0-d3,d8-d11..d40-d43 */
+					spx5_wr(0x332, priv, PORT_CONF_USGMII_CFG(i / 8));
 			}
 		}
 	}
@@ -644,10 +583,8 @@ static void sparx5_cpu_capture_setup(struct sparx5_private *priv)
 
 static void sparx5_port_sgmii_init(struct sparx5_private *priv, int port)
 {
-	sparx5_serdes_port_init(port,
-				 priv->ports[port].mac_type,
-				 priv->ports[port].serdes_type,
-				 priv->ports[port].serdes_index);
+	sparx5_serdes_port_init(priv->ports[port].serdes_phy,
+				priv->ports[port].mac_type);
 
 	/* Enable PCS */
 	spx5_wr(DEV2G5_PCS1G_CFG_PCS_ENA_SET(1),
@@ -1099,6 +1036,10 @@ static int sparx5_probe(struct udevice *dev)
 		}
 	}
 
+	priv->serdes = sparx5_serdes_probe(dev);
+	if (IS_ERR(priv->serdes))
+		return PTR_ERR(priv->serdes);
+
 	/* iterate all the ports and find out on which bus they are */
 	i = 0;
 	eth_node = dev_read_first_subnode(dev);
@@ -1161,6 +1102,9 @@ static int sparx5_probe(struct udevice *dev)
 			priv->ports[i].mac_type = serdes_args[SERDES_ARG_MAC_TYPE];
 			priv->ports[i].serdes_type = serdes_args[SERDES_ARG_SERDES];
 			priv->ports[i].serdes_index = serdes_args[SERDES_ARG_SER_IDX];
+			priv->ports[i].serdes_phy = sparx5_serdes_phy_get(priv->serdes,
+									  priv->ports[i].serdes_type,
+									  priv->ports[i].serdes_index);
 		}
 
 		debug("%s: Add port %d bus %s addr %zd serdes %s serdes# %d\n",
@@ -1183,16 +1127,6 @@ static int sparx5_probe(struct udevice *dev)
 	}
 
 	dev_priv = priv;
-
-	/* Power down all CMUs and set all serdeses in quiet mode */
-	/* Don't power down the cmus as the clock from the CMUs is used as a
-	 * reference clock, so when it is power off, the entire board looses the
-	 * clock
-	 */
-	if (priv->data->target == SPARX5_TARGET) {
-		sparx5_serdes_cmu_init();
-		sparx5_serdes_init();
-	}
 
 	return 0;
 }
