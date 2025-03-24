@@ -57,6 +57,13 @@ static struct mm_region fa_mem_map[] = {
                          PTE_BLOCK_NON_SHARE |
                          PTE_BLOCK_PXN | PTE_BLOCK_UXN
         }, {
+                .virt = LAN969X_USB_BASE,
+                .phys = LAN969X_USB_BASE,
+                .size = LAN969X_USB_SIZE,
+                .attrs = PTE_BLOCK_MEMTYPE(MT_DEVICE_NGNRNE) |
+                         PTE_BLOCK_NON_SHARE |
+                         PTE_BLOCK_PXN | PTE_BLOCK_UXN
+        }, {
                 /* List terminator */
                 0,
         }
@@ -79,7 +86,7 @@ enum env_location env_get_location(enum env_operation op, int prio)
 	}
 }
 
-void reset_cpu(void)
+__weak void reset_cpu(void)
 {
 	clrbits_le32(CPU_RESET_PROT_STAT(LAN969X_CPU_BASE),
 		     CPU_RESET_PROT_STAT_SYS_RST_PROT_VCORE_M);

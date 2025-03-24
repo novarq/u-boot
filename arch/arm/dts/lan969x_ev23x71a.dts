@@ -3,10 +3,17 @@
 #include "lan969x_a0.dtsi"
 #include "lan969x.dtsi"
 
+#include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/mscc/sparx5_data.h>
 
 / {
 	model = "lan969x ev23x71a (pcb8398)";
+
+	gpio-restart {
+		compatible = "gpio-restart";
+		gpios = <&gpio 60 GPIO_ACTIVE_LOW>;
+		priority = <200>;
+	};
 };
 
 &uart0 {
@@ -61,4 +68,10 @@
 			phys = <IF_RGMII>;
 		};
 	};
+};
+
+&usb0 {
+	status = "okay";
+	pinctrl-0 = <&usb_ulpi_pins>, <&usb_rst_pins>, <&usb_over_pins>, <&usb_power_pins>;
+	pinctrl-names = "default";
 };

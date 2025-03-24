@@ -23,4 +23,9 @@
 
 #define N_CLOCKS	12
 
+/* Gate clocks */
+#define GCK_GATE_USB_DRD	12
+#define GCK_GATE_MCRAMC		13
+#define GCK_GATE_HMATRIX	14
+
 #endif

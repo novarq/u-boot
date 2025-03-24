@@ -37,6 +37,10 @@ enum {
 	FUNC_MIIM,
 	FUNC_NONE,
 	FUNC_R,
+	FUNC_USB_POWER,
+	FUNC_USB2PHY_RST,
+	FUNC_USB_OVER_DETECT,
+	FUNC_USB_ULPI,
 	FUNC_MAX
 };
 
@@ -47,6 +51,10 @@ static const char *const lan969x_function_names[FUNC_MAX] = {
 	[FUNC_MIIM]		= "miim",
 	[FUNC_NONE]		= "none",
 	[FUNC_R]		= "reserved",
+	[FUNC_USB_POWER]	= "usb_power",
+	[FUNC_USB2PHY_RST]	= "usb2phy_rst",
+	[FUNC_USB_OVER_DETECT]	= "usb_over_detect",
+	[FUNC_USB_ULPI]		= "usb_ulpi",
 };
 
 struct lan969x_pin_caps {
@@ -90,74 +98,74 @@ struct lan969x_pinctrl {
 };
 
 /* Pinmuxing table taken from data sheet */
-/*        Pin   FUNC0    FUNC1     FUNC2      FUNC3     FUNC4     FUNC5      FUNC6    FUNC7 */
-LAN969X_P(0,    GPIO,    NONE,       FC,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(1,    GPIO,    NONE,       FC,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(2,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(3,    GPIO,      FC,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(4,    GPIO,      FC,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(5,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(6,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(7,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(8,    GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(9,    GPIO,    MIIM,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(10,   GPIO,    MIIM,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(11,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(12,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(13,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(14,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(15,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(16,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(17,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(18,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(19,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(20,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(21,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(22,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(23,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(24,   GPIO, EMMC_SD,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(25,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(26,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(27,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(28,   GPIO,    NONE,       FC,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(29,   GPIO,    NONE,       FC,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(30,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(31,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(32,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(33,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(34,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(35,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(36,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(37,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(38,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(39,   GPIO,    NONE,     NONE,      MIIM,     NONE,     NONE,      NONE,        R);
-LAN969X_P(40,   GPIO,    NONE,     NONE,      MIIM,     NONE,     NONE,      NONE,        R);
-LAN969X_P(41,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(42,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(43,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(44,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(45,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(46,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(47,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(48,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(49,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(50,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(51,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(52,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(53,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(54,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(55,   GPIO,    NONE,       FC,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(56,   GPIO,    NONE,       FC,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(57,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(58,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(59,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(60,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(61,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(62,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(63,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(64,   GPIO,    NONE,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(65,   GPIO,      FC,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
-LAN969X_P(66,   GPIO,      FC,     NONE,      NONE,     NONE,     NONE,      NONE,        R);
+/*        Pin   FUNC0    FUNC1     FUNC2           FUNC3              FUNC4     FUNC5      FUNC6    FUNC7 */
+LAN969X_P(0,    GPIO,    NONE,       FC,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(1,    GPIO,    NONE,       FC,      USB_POWER,              NONE,     NONE,      NONE,        R);
+LAN969X_P(2,    GPIO,    NONE,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(3,    GPIO,      FC,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(4,    GPIO,      FC,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(5,    GPIO,    NONE,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(6,    GPIO,    NONE,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(7,    GPIO,    NONE,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(8,    GPIO,    NONE,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(9,    GPIO,    MIIM,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(10,   GPIO,    MIIM,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(11,   GPIO,    NONE,     NONE,           NONE,              NONE,     NONE,      NONE,        R);
+LAN969X_P(12,   GPIO,    NONE,     NONE,    USB2PHY_RST,              NONE,     NONE,      NONE,        R);
+LAN969X_P(13,   GPIO,    NONE,     NONE, USB_OVER_DETECT,             NONE,     NONE,      NONE,        R);
+LAN969X_P(14,   GPIO, EMMC_SD,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(15,   GPIO, EMMC_SD,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(16,   GPIO, EMMC_SD,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(17,   GPIO, EMMC_SD,     NONE,            NONE,        USB_POWER,     NONE,      NONE,        R);
+LAN969X_P(18,   GPIO, EMMC_SD,     NONE,            NONE,      USB2PHY_RST,     NONE,      NONE,        R);
+LAN969X_P(19,   GPIO, EMMC_SD,     NONE,            NONE,  USB_OVER_DETECT,     NONE,      NONE,        R);
+LAN969X_P(20,   GPIO, EMMC_SD,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(21,   GPIO, EMMC_SD,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(22,   GPIO, EMMC_SD,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(23,   GPIO, EMMC_SD,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(24,   GPIO, EMMC_SD,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(25,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(26,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(27,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(28,   GPIO,    NONE,       FC,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(29,   GPIO,    NONE,       FC,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(30,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(31,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(32,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(33,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(34,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(35,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(36,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(37,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(38,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(39,   GPIO,    NONE, USB_ULPI,            MIIM,             NONE,     NONE,      NONE,        R);
+LAN969X_P(40,   GPIO,    NONE, USB_ULPI,            MIIM,             NONE,     NONE,      NONE,        R);
+LAN969X_P(41,   GPIO,    NONE, USB_ULPI,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(42,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(43,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(44,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(45,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(46,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(47,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(48,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(49,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(50,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(51,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(52,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(53,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(54,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(55,   GPIO,    NONE,       FC,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(56,   GPIO,    NONE,       FC,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(57,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(58,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(59,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(60,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(61,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(62,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(63,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(64,   GPIO,    NONE,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(65,   GPIO,      FC,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
+LAN969X_P(66,   GPIO,      FC,     NONE,            NONE,             NONE,     NONE,      NONE,        R);
 
 #define LAN969X_PIN(n) {                                      \
 	.name = "GPIO_"#n,                                     \

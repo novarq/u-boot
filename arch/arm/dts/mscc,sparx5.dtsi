@@ -319,7 +319,8 @@
 			      <6 0x104d4000 0x4000>,   // DEV2G5_61
 			      <6 0x104e4000 0x4000>,   // DEV2G5_62
 			      <6 0x104f4000 0x4000>,   // DEV2G5_63
-			      <6 0x10124000 0x4000>;   // DEV2G5_64
+			      <6 0x10124000 0x4000>,   // DEV2G5_64
+			      <6 0x10808000 0x5d0000>; // SERDES
 			reg-names =
 			      "ana_ac", "ana_cl", "ana_l2", "ana_l3",
 			      "asm", "lrn", "qfwd", "qs",
@@ -340,6 +341,7 @@
 			      "port54", "port55", "port56", "port57", "port58",
 			      "port59", "port60", "port61", "port62", "port63",
 			      "port64";
+			clocks = <&sys_clk>;
 			ethernet-ports {
 				#address-cells = <1>;
 				#size-cells = <0>;

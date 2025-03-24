@@ -17,7 +17,7 @@
 
 	clks: clocks@e00c00b4 {
 		compatible = "mchp,lan969x-clk";
-		reg = <0xe00c00b4 30>;
+		reg = <0xe00c00b4 30>, <0xe00c0308 0x4>;
 		#clock-cells = <1>;
 		clocks = <&cpu_clk>;
 	};
