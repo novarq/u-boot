@@ -154,13 +154,20 @@ static struct driver luton_gpio_driver = {
 	.ops	= &mscc_gpio_ops,
 };
 
+const struct mscc_pincfg_data luton_pincfg = {
+	.pd_bit = BIT(4),
+	.pu_bit = BIT(3),
+	.drive_bits = GENMASK(1, 0),
+	.schmitt_bit = BIT(2),
+};
+
 int luton_pinctrl_probe(struct udevice *dev)
 {
 	int ret;
 
 	ret = mscc_pinctrl_probe(dev, FUNC_MAX, luton_pins,
 				 ARRAY_SIZE(luton_pins), luton_function_names,
-				 luton_gpios);
+				 luton_gpios, &luton_pincfg);
 
 	if (ret)
 		return ret;

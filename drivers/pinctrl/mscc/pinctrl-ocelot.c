@@ -169,6 +169,13 @@ static struct driver ocelot_gpio_driver = {
 	.ops	= &mscc_gpio_ops,
 };
 
+const struct mscc_pincfg_data ocelot_pincfg = {
+	.pd_bit = BIT(4),
+	.pu_bit = BIT(3),
+	.drive_bits = GENMASK(1, 0),
+	.schmitt_bit = BIT(2),
+};
+
 int ocelot_pinctrl_probe(struct udevice *dev)
 {
 	int ret;
@@ -176,7 +183,7 @@ int ocelot_pinctrl_probe(struct udevice *dev)
 	ret = mscc_pinctrl_probe(dev, FUNC_MAX, ocelot_pins,
 				 ARRAY_SIZE(ocelot_pins),
 				 ocelot_function_names,
-				 ocelot_gpios);
+				 ocelot_gpios, &ocelot_pincfg);
 
 	if (ret)
 		return ret;

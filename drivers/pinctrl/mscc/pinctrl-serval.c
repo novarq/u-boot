@@ -204,7 +204,7 @@ static int serval_pinctrl_probe(struct udevice *dev)
 	ret = mscc_pinctrl_probe(dev, FUNC_MAX, serval_pins,
 				 ARRAY_SIZE(serval_pins),
 				 serval_function_names,
-				 serval_gpios);
+				 serval_gpios, NULL);
 
 	if (ret)
 		return ret;
