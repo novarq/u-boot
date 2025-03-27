@@ -7,6 +7,8 @@
 #include <common.h>
 #include <cpu_func.h>
 #include <debug_uart.h>
+#include <dm/uclass.h>
+#include <dm/uclass-internal.h>
 #include <asm/io.h>
 #include <env_internal.h>
 #include <fdtdec.h>
@@ -693,6 +695,19 @@ int embedded_dtb_select(void)
 	return 0;
 }
 #endif
+
+void board_quiesce_devices(void)
+{
+	struct uclass *uc_dev;
+	int ret;
+
+	/* Removes all RVU PF devices */
+	ret = uclass_get(UCLASS_ETH, &uc_dev);
+	if (uc_dev)
+		ret = uclass_destroy(uc_dev);
+	if (ret)
+		printf("couldn't remove ethernet devices\n");
+}
 
 int print_cpuinfo(void)
 {
