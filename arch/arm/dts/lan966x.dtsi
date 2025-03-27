@@ -38,7 +38,8 @@
 
 			gpio: pinctrl@e0000000 {
 				compatible = "mchp,lan966x-pinctrl";
-				reg = <GCB_GPIO_ADDR GCB_GPIO_SIZE>;
+				reg = <GCB_GPIO_ADDR GCB_GPIO_SIZE>,
+				      <0xe2010024 0x138>;
 				gpio-controller;
 				#gpio-cells = <2>;
 				gpio-ranges = <&gpio 0 0 78>;
