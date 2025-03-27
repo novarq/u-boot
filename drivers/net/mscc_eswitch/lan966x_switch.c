@@ -408,6 +408,27 @@ static int lan966x_adjust_link(struct lan966x_port *port)
 	return 0;
 }
 
+static void lan966x_switch_init(struct lan966x_private *lan966x)
+{
+	int ret;
+	u32 val;
+
+	if (LAN_RD(lan966x, SYS_RESET_CFG) & SYS_RESET_CFG_CORE_ENA(1))
+		return;
+
+	LAN_WR(0x0, lan966x, SYS_RESET_CFG);
+	LAN_WR(0x2, lan966x, SYS_RAM_INIT);
+	ret = readx_poll_timeout(lan966x_ram_init, lan966x,
+				 val, (val & BIT(1)) == 0, READL_TIMEOUT_US);
+	if (ret)
+		return;
+	LAN_WR(0x1, lan966x, SYS_RESET_CFG);
+
+	LAN_RMW(CHIP_TOP_CUPHY_COMMON_CFG_RESET_N(1),
+		CHIP_TOP_CUPHY_COMMON_CFG_RESET_N_M,
+		lan966x, CHIP_TOP_CUPHY_COMMON_CFG);
+}
+
 static int lan966x_start(struct udevice *dev)
 {
 	struct lan966x_port *port = dev_get_priv(dev);
@@ -415,7 +436,7 @@ static int lan966x_start(struct udevice *dev)
 	int err;
 	u32 i;
 
-	lan966x_reset_switch(lan966x, true);
+	lan966x_switch_init(lan966x);
 	lan966x_mact_init(lan966x);
 	lan966x_write_hwaddr(dev);
 
@@ -535,10 +556,6 @@ static int lan966x_start(struct udevice *dev)
 
 static void lan966x_stop(struct udevice *dev)
 {
-	struct lan966x_port *port = dev_get_priv(dev);
-	struct lan966x_private *lan966x = port->lan966x;
-
-	lan966x_reset_switch(lan966x, false);
 }
 
 static void lan966x_ifh_inject(u32 *ifh, size_t val, size_t pos, size_t length)
