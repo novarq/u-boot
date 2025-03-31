@@ -286,21 +286,6 @@ static void lan966x_reset_switch(struct lan966x_private *lan966x,
 			lan966x, CHIP_TOP_CUPHY_COMMON_CFG);
 }
 
-static int lan966x_phy_init(struct lan966x_port *port)
-{
-	struct phy_device *phy;
-
-	if (!port->bus)
-		return -1;
-
-	phy = phy_connect(port->bus, port->phy_addr, port->dev, port->phy_mode);
-	if (!phy)
-		return -1;
-
-	port->phy = phy;
-	return 0;
-}
-
 static void lan966x_rgmii_setup(struct lan966x_port *port)
 {
 	struct lan966x_private *lan966x = port->lan966x;
@@ -345,13 +330,12 @@ static void lan966x_serdes_setup(struct lan966x_port *port)
 {
 	struct lan966x_private *lan966x = port->lan966x;
 
-	if (!port->bus)
+	if (!port->phy)
 		return;
 
-	switch (port->phy_mode) {
+	switch (port->phy->interface) {
 	case PHY_INTERFACE_MODE_QSGMII:
-		if (!port->bus ||
-		    port->serdes_index == 0xff)
+		if (port->serdes_index == 0xff)
 			break;
 
 		LAN_RMW(HSIO_HW_CFG_QSGMII_ENA(3),
@@ -392,7 +376,7 @@ static int lan966x_adjust_link(struct lan966x_port *port)
 
 	/* If the port is QSGMII then all the ports needs to be enabled */
 	for (i = 0; i < lan966x->num_phys_ports; ++i) {
-		if (lan966x->ports[i]->phy_mode == PHY_INTERFACE_MODE_QSGMII) {
+		if (lan966x->ports[i]->phy->interface == PHY_INTERFACE_MODE_QSGMII) {
 			LAN_RMW(DEV_CLOCK_CFG_PCS_RX_RST(0) |
 				DEV_CLOCK_CFG_PCS_TX_RST(0) |
 				DEV_CLOCK_CFG_LINK_SPEED(LAN966X_SPEED_1000),
@@ -423,10 +407,6 @@ static void lan966x_switch_init(struct lan966x_private *lan966x)
 	if (ret)
 		return;
 	LAN_WR(0x1, lan966x, SYS_RESET_CFG);
-
-	LAN_RMW(CHIP_TOP_CUPHY_COMMON_CFG_RESET_N(1),
-		CHIP_TOP_CUPHY_COMMON_CFG_RESET_N_M,
-		lan966x, CHIP_TOP_CUPHY_COMMON_CFG);
 }
 
 static int lan966x_start(struct udevice *dev)
@@ -539,11 +519,6 @@ static int lan966x_start(struct udevice *dev)
 		ANA_PGID_PGID_M, lan966x, ANA_PGID(PGID_BC));
 
 	LAN_WR(REW_PORT_CFG_NO_REWRITE(1), lan966x, REW_PORT_CFG(CPU_PORT));
-
-	board_init();
-	err = lan966x_phy_init(port);
-	if (err)
-		return err;
 
 	err = lan966x_adjust_link(port);
 	if (err)
@@ -799,40 +774,14 @@ out:
 	return byte_cnt;
 }
 
-struct mii_dev *lan966x_mdiobus_init(struct mscc_miim_dev *miim, int miim_index,
-				     phys_addr_t miim_base, unsigned long miim_size)
-{
-	struct mii_dev *bus;
-
-	bus = mdio_alloc();
-
-	if (!bus)
-		return NULL;
-
-	sprintf(bus->name, "miim-bus%d", miim_index);
-
-	miim->regs = ioremap(miim_base, miim_size);
-	bus->priv = miim;
-	bus->read = mscc_miim_read;
-	bus->write = mscc_miim_write;
-
-	if (mdio_register(bus))
-		return NULL;
-
-	return bus;
-}
-
 static int lan966x_probe(struct udevice *dev)
 {
 	struct lan966x_private *lan966x = dev_get_priv(dev->parent);
 	struct lan966x_port *port = dev_get_priv(dev);
 	struct ofnode_phandle_args phandle;
-	unsigned long addr_size;
-	ofnode node, mdio_node;
-	phys_addr_t addr_base;
-	struct mii_dev *bus;
+	struct phy_device *phy;
 	struct resource res;
-	fdt32_t faddr;
+	ofnode node;
 	int ret;
 
 	node = dev_ofnode(dev);
@@ -855,40 +804,21 @@ static int lan966x_probe(struct udevice *dev)
 	port->lan966x = lan966x;
 	lan966x->ports[port->chip_port] = port;
 
-	ret = ofnode_parse_phandle_with_args(node, "phy-handle", NULL,
-					     0, 0, &phandle);
-	if (ret)
-		return -EINVAL;
-
-	/* Get phy address of mdio bus */
-	if (ofnode_read_resource(phandle.node, 0, &res))
-		return -ENOMEM;
-	port->phy_addr = res.start;
-
-	/* Get mdio node */
-	mdio_node = ofnode_get_parent(phandle.node);
-	if (ofnode_read_resource(mdio_node, 0, &res))
-		return -ENOMEM;
-	faddr = cpu_to_fdt32(res.start);
-
-	addr_base = ofnode_translate_address(mdio_node, &faddr);
-	addr_size = res.end - res.start;
-
-	/* Add the mdio bus */
-	bus = lan966x_mdiobus_init(&port->miim, port->chip_port,
-				   addr_base, addr_size);
-	if (!bus)
-		return -ENOMEM;
-	port->bus = bus;
-
-	/* Get the phy mode */
-	port->phy_mode = dev_read_phy_mode(dev);
-
 	/* Get the serdes */
 	ret = ofnode_parse_phandle_with_args(node, "phys", NULL, 1, 0,
 					     &phandle);
 	if (!ret)
 		port->serdes_index = phandle.args[0];
+
+	LAN_RMW(CHIP_TOP_CUPHY_COMMON_CFG_RESET_N(1),
+		CHIP_TOP_CUPHY_COMMON_CFG_RESET_N_M,
+		lan966x, CHIP_TOP_CUPHY_COMMON_CFG);
+
+	phy = dm_eth_phy_connect(port->dev);
+	if (!phy)
+		return -1;
+
+	port->phy = phy;
 
 	return 0;
 }
@@ -899,8 +829,6 @@ static int lan966x_remove(struct udevice *dev)
 	struct lan966x_private *lan966x = port->lan966x;
 
 	lan966x_reset_switch(lan966x, false);
-	mdio_unregister(port->bus);
-	mdio_free(port->bus);
 
 	return 0;
 }

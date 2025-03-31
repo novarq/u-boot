@@ -14,12 +14,9 @@ struct lan966x_port {
 	u8 chip_port;
 	u8 phy_addr;
 	u8 serdes_index;
-	u8 phy_mode;
 
-	struct mii_dev *bus;
 	struct phy_device *phy;
 	struct udevice *dev;
-	struct mscc_miim_dev miim;
 	struct lan966x_private *lan966x;
 };
 
