@@ -37,6 +37,13 @@
 				};
 			};
 
+			lan966x_mdio0: mdio@4118 {
+				status = "okay";
+
+				pinctrl-0 = <&miim_a_pins>;
+				pinctrl-names = "default";
+			};
+
 			lan966x_mdio1: mdio@413c {
 				status = "okay";
 
