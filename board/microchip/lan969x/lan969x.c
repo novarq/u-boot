@@ -8,6 +8,8 @@
 #include <asm/armv8/cpu.h>
 #include <asm/armv8/mmu.h>
 #include <debug_uart.h>
+#include <dm/uclass.h>
+#include <dm/uclass-internal.h>
 #include <linux/sizes.h>
 #include <asm/global_data.h>
 #include <env.h>
@@ -382,6 +384,19 @@ int board_late_init(void)
 	}
 
 	return 0;
+}
+
+void board_quiesce_devices(void)
+{
+	struct uclass *uc_dev;
+	int ret;
+
+	/* Removes all RVU PF devices */
+	ret = uclass_get(UCLASS_ETH, &uc_dev);
+	if (uc_dev)
+		ret = uclass_destroy(uc_dev);
+	if (ret)
+		printf("couldn't remove ethernet devices\n");
 }
 
 #ifdef CONFIG_DEBUG_UART_BOARD_INIT

@@ -5,6 +5,8 @@
 
 #include <common.h>
 #include <miiphy.h>
+#include <dm/uclass.h>
+#include <dm/uclass-internal.h>
 #include <asm/armv8/mmu.h>
 #include <asm/io.h>
 #include <linux/sizes.h>
@@ -452,6 +454,19 @@ int board_late_init(void)
 	}
 	return 0;
 #undef PCB_SUFFIX
+}
+
+void board_quiesce_devices(void)
+{
+	struct uclass *uc_dev;
+	int ret;
+
+	/* Removes all RVU PF devices */
+	ret = uclass_get(UCLASS_ETH, &uc_dev);
+	if (uc_dev)
+		ret = uclass_destroy(uc_dev);
+	if (ret)
+		printf("couldn't remove ethernet devices\n");
 }
 
 void boot0(void)

@@ -857,10 +857,6 @@ static int sparx5_start(struct udevice *dev)
 	struct eth_pdata *pdata = dev_get_plat(dev);
 	int i, ret, phy_ok = 0, ret_err = 0;
 
-	ret = sparx5_initialize(priv);
-	if (ret)
-		return ret;
-
 	/* Set MAC address tables entries for CPU redirection */
 	ret = sparx5_mac_table_add(priv, mac, PGID_BROADCAST(priv));
 	if (ret)
@@ -909,15 +905,6 @@ static void sparx5_stop(struct udevice *dev)
 		if (phy)
 			phy_shutdown(phy);
 	}
-
-	/* Make sure the core is PROTECTED from reset */
-	spx5_rmw(CPU_RESET_PROT_STAT_SYS_RST_PROT_VCORE,
-		 CPU_RESET_PROT_STAT_SYS_RST_PROT_VCORE,
-		 priv, CPU_RESET_PROT_STAT);
-
-	/* Reset switch core */
-	spx5_wr(GCB_SOFT_RST_SOFT_CHIP_RST_SET(1),
-		priv, GCB_SOFT_RST);
 }
 
 static int sparx5_send(struct udevice *dev, void *packet, int length)
@@ -1126,6 +1113,8 @@ static int sparx5_probe(struct udevice *dev)
 			priv->ports[i].phy = phy;
 	}
 
+	sparx5_initialize(priv);
+
 	dev_priv = priv;
 
 	return 0;
@@ -1140,6 +1129,15 @@ static int sparx5_remove(struct udevice *dev)
 		mdio_unregister(priv->bus[i]);
 		mdio_free(priv->bus[i]);
 	}
+
+	/* Make sure the core is PROTECTED from reset */
+	spx5_rmw(CPU_RESET_PROT_STAT_SYS_RST_PROT_VCORE,
+		 CPU_RESET_PROT_STAT_SYS_RST_PROT_VCORE,
+		 priv, CPU_RESET_PROT_STAT);
+
+	/* Reset switch core */
+	spx5_wr(GCB_SOFT_RST_SOFT_CHIP_RST_SET(1),
+		priv, GCB_SOFT_RST);
 
 	dev_priv = NULL;
 

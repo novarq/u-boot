@@ -88,6 +88,7 @@ struct lan969x_pinctrl {
 	struct udevice *dev;
 	struct pinctrl_dev *pctl;
 	struct regmap *map;
+	void __iomem *pincfg;
 	struct lan969x_pmx_func *func;
 	int num_func;
 	const struct lan969x_pin_data *lan969x_pins;
@@ -395,6 +396,52 @@ static int lan969x_pinmux_set_mux(struct udevice *dev,
 	return 0;
 }
 
+#if CONFIG_IS_ENABLED(PINCONF)
+static const struct pinconf_param lan969x_pinconf_params[] = {
+	{ "bias-disable", PIN_CONFIG_BIAS_DISABLE, 0 },
+	{ "bias-pull-up", PIN_CONFIG_BIAS_PULL_UP, 1 },
+	{ "bias-pull-down", PIN_CONFIG_BIAS_PULL_DOWN, 0 },
+	{ "drive-strength", PIN_CONFIG_DRIVE_STRENGTH, 0 },
+};
+
+static int lan969x_pinconf_set(struct udevice *dev, unsigned int pin,
+			    unsigned int param, unsigned int arg)
+{
+	struct lan969x_pinctrl *info = dev_get_priv(dev);
+	unsigned int val;
+	int err = 0;
+
+	if (info->pincfg == NULL)
+		return err;
+
+	switch (param) {
+	case PIN_CONFIG_BIAS_DISABLE:
+	case PIN_CONFIG_BIAS_PULL_UP:
+	case PIN_CONFIG_BIAS_PULL_DOWN:
+		val = readl(info->pincfg + (pin * 4));
+		val &= ~(BIT(3) | BIT(2));
+		val |= (param == PIN_CONFIG_BIAS_DISABLE) ? 0 :
+		       (param == PIN_CONFIG_BIAS_PULL_UP) ? BIT(3) : BIT(2);
+		writel(val, info->pincfg + (pin * 4));
+		break;
+	case PIN_CONFIG_DRIVE_STRENGTH:
+		if (arg <= 3) {
+			val = readl(info->pincfg + (pin * 4));
+			val &= ~GENMASK(1, 0);
+			val |= arg;
+			writel(val, info->pincfg + (pin * 4));
+		} else {
+			err = -EINVAL;
+		}
+		break;
+	default:
+		err = -ENOTSUPP;
+	}
+
+	return err;
+}
+#endif
+
 const struct pinctrl_ops lan969x_pinctrl_ops = {
 	.get_pins_count = lan969x_pctl_get_groups_count,
 	.get_pin_name = lan969x_pctl_get_group_name,
@@ -402,6 +449,11 @@ const struct pinctrl_ops lan969x_pinctrl_ops = {
 	.get_function_name = lan969x_get_function_name,
 	.pinmux_set = lan969x_pinmux_set_mux,
 	.set_state = pinctrl_generic_set_state,
+#if CONFIG_IS_ENABLED(PINCONF)
+	.pinconf_num_params = ARRAY_SIZE(lan969x_pinconf_params),
+	.pinconf_params = lan969x_pinconf_params,
+	.pinconf_set = lan969x_pinconf_set,
+#endif
 };
 
 static struct driver lan969x_gpio_driver = {
@@ -419,6 +471,8 @@ int lan969x_pinctrl_probe(struct udevice *dev)
 	ret = regmap_init_mem(dev_ofnode(dev), &priv->map);
 	if (ret)
 		return -EINVAL;
+
+	priv->pincfg = dev_remap_addr_index(dev, 1);
 
 	priv->func = devm_kzalloc(dev, FUNC_MAX * sizeof(struct lan969x_pmx_func), GFP_KERNEL);
 	priv->num_func = FUNC_MAX;

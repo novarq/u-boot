@@ -287,6 +287,13 @@ static struct driver jr2_gpio_driver = {
 	.ops	= &mscc_gpio_ops,
 };
 
+const struct mscc_pincfg_data jr2_pincfg = {
+	.pd_bit = BIT(4),
+	.pu_bit = BIT(3),
+	.drive_bits = GENMASK(1, 0),
+	.schmitt_bit = BIT(2),
+};
+
 static int jr2_pinctrl_probe(struct udevice *dev)
 {
 	int ret;
@@ -294,7 +301,7 @@ static int jr2_pinctrl_probe(struct udevice *dev)
 	ret = mscc_pinctrl_probe(dev, FUNC_MAX, jr2_pins,
 				 ARRAY_SIZE(jr2_pins),
 				 jr2_function_names,
-				 jr2_gpios);
+				 jr2_gpios, &jr2_pincfg);
 
 	if (ret)
 		return ret;

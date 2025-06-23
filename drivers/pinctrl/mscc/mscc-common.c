@@ -243,6 +243,62 @@ const struct dm_gpio_ops mscc_gpio_ops = {
 	.direction_output = mscc_gpio_direction_output,
 };
 
+#if CONFIG_IS_ENABLED(PINCONF)
+static const struct pinconf_param mscc_pinconf_params[] = {
+	{ "bias-disable", PIN_CONFIG_BIAS_DISABLE, 0 },
+	{ "bias-pull-up", PIN_CONFIG_BIAS_PULL_UP, 1 },
+	{ "bias-pull-down", PIN_CONFIG_BIAS_PULL_DOWN, 1 },
+	{ "input-schmitt-enable", PIN_CONFIG_INPUT_SCHMITT_ENABLE, 1 },
+	{ "input-schmitt-disable", PIN_CONFIG_INPUT_SCHMITT_ENABLE, 0 },
+	{ "drive-strength", PIN_CONFIG_DRIVE_STRENGTH, 0 },
+};
+
+static int mscc_pinconf_set(struct udevice *dev, unsigned int pin,
+			    unsigned int param, unsigned int arg)
+{
+	struct mscc_pinctrl *info = dev_get_priv(dev);
+	unsigned int val;
+	int err = 0;
+
+	if (info->pincfg == NULL || info->mscc_pincfg == NULL)
+		return err;
+
+	switch (param) {
+	case PIN_CONFIG_BIAS_DISABLE:
+	case PIN_CONFIG_BIAS_PULL_UP:
+	case PIN_CONFIG_BIAS_PULL_DOWN:
+		val = readl(info->pincfg + (pin * 4));
+		val &= ~(info->mscc_pincfg->pu_bit |
+			 info->mscc_pincfg->pd_bit);
+		val |= (param == PIN_CONFIG_BIAS_DISABLE) ? 0 :
+		       (param == PIN_CONFIG_BIAS_PULL_UP) ? info->mscc_pincfg->pu_bit :
+		       info->mscc_pincfg->pd_bit;
+		writel(val, info->pincfg + (pin * 4));
+		break;
+	case PIN_CONFIG_INPUT_SCHMITT_ENABLE:
+		val = readl(info->pincfg + (pin * 4));
+		val &= ~info->mscc_pincfg->schmitt_bit;
+		val |= info->mscc_pincfg->schmitt_bit;
+		writel(val, info->pincfg + (pin * 4));
+		break;
+	case PIN_CONFIG_DRIVE_STRENGTH:
+		if (arg <= 3) {
+			val = readl(info->pincfg + (pin * 4));
+			val &= ~info->mscc_pincfg->drive_bits;
+			val |= arg;
+			writel(val, info->pincfg + (pin * 4));
+		} else {
+			err = -EINVAL;
+		}
+		break;
+	default:
+		err = -ENOTSUPP;
+	}
+
+	return err;
+}
+#endif
+
 const struct pinctrl_ops mscc_pinctrl_ops = {
 	.get_pins_count = mscc_pctl_get_groups_count,
 	.get_pin_name = mscc_pctl_get_group_name,
@@ -250,12 +306,18 @@ const struct pinctrl_ops mscc_pinctrl_ops = {
 	.get_function_name = mscc_get_function_name,
 	.pinmux_set = mscc_pinmux_set_mux,
 	.set_state = pinctrl_generic_set_state,
+#if CONFIG_IS_ENABLED(PINCONF)
+	.pinconf_num_params = ARRAY_SIZE(mscc_pinconf_params),
+	.pinconf_params = mscc_pinconf_params,
+	.pinconf_set = mscc_pinconf_set,
+#endif
 };
 
 int mscc_pinctrl_probe(struct udevice *dev, int num_func,
 		       const struct mscc_pin_data *mscc_pins, int num_pins,
 		       char * const *function_names,
-		       const unsigned long *mscc_gpios)
+		       const unsigned long *mscc_gpios,
+		       const struct mscc_pincfg_data *mscc_pincfg)
 {
 	struct mscc_pinctrl *priv = dev_get_priv(dev);
 	int ret;
@@ -264,6 +326,9 @@ int mscc_pinctrl_probe(struct udevice *dev, int num_func,
 	if (!priv->regs)
 		return -EINVAL;
 
+	/* There is no check here as this can be NULL ptr */
+	priv->pincfg = dev_remap_addr_index(dev, 1);
+
 	priv->func = devm_kzalloc(dev, num_func * sizeof(struct mscc_pmx_func),
 				  GFP_KERNEL);
 	priv->num_func = num_func;
@@ -271,6 +336,7 @@ int mscc_pinctrl_probe(struct udevice *dev, int num_func,
 	priv->num_pins = num_pins;
 	priv->function_names = function_names;
 	priv->mscc_gpios = mscc_gpios;
+	priv->mscc_pincfg = mscc_pincfg;
 	ret = mscc_pinctrl_register(dev, priv);
 
 	return ret;

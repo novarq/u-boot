@@ -45,22 +45,32 @@ struct mscc_pmx_func {
 	unsigned int ngroups;
 };
 
+struct mscc_pincfg_data {
+	u8 pd_bit;
+	u8 pu_bit;
+	u8 drive_bits;
+	u8 schmitt_bit;
+};
+
 struct mscc_pinctrl {
 	struct udevice *dev;
 	struct pinctrl_dev *pctl;
 	void __iomem *regs;
+	void __iomem *pincfg;
 	struct mscc_pmx_func *func;
 	int num_func;
 	const struct mscc_pin_data *mscc_pins;
 	int num_pins;
 	char * const *function_names;
 	const unsigned long *mscc_gpios;
+	const struct mscc_pincfg_data *mscc_pincfg;
 };
 
 int mscc_pinctrl_probe(struct udevice *dev, int num_func,
 		       const struct mscc_pin_data *mscc_pins, int num_pins,
 		       char * const *function_names,
-		       const unsigned long *mscc_gpios);
+		       const unsigned long *mscc_gpios,
+		       const struct mscc_pincfg_data *mscc_pincfg);
 extern const struct pinctrl_ops mscc_pinctrl_ops;
 
 extern const struct dm_gpio_ops mscc_gpio_ops;

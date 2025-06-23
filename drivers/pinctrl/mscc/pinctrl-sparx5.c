@@ -228,6 +228,13 @@ const struct mscc_pin_data sparx5_pins[] = {
 	SPARX5_PIN(63),
 };
 
+const struct mscc_pincfg_data sparx5_pincfg = {
+	.pd_bit = BIT(4),
+	.pu_bit = BIT(3),
+	.drive_bits = GENMASK(1, 0),
+	.schmitt_bit = BIT(2),
+};
+
 static int sparx5_gpio_probe(struct udevice *dev)
 {
 	struct gpio_dev_priv *uc_priv;
@@ -266,7 +273,8 @@ int sparx5_pinctrl_probe(struct udevice *dev)
 	ret = mscc_pinctrl_probe(dev, FUNC_MAX, sparx5_pins,
 				 ARRAY_SIZE(sparx5_pins),
 				 sparx5_function_names,
-				 sparx5_gpios);
+				 sparx5_gpios,
+				 &sparx5_pincfg);
 
 	if (ret)
 		return ret;
