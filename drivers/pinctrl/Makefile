@@ -22,6 +22,7 @@ obj-$(CONFIG_PINCTRL_AT91PIO4)		+= pinctrl-at91-pio4.o
 obj-$(CONFIG_PINCTRL_EXYNOS)		+= exynos/
 obj-$(CONFIG_PINCTRL_INTEL)		+= intel/
 obj-$(CONFIG_PINCTRL_K210)		+= pinctrl-k210.o
+obj-$(CONFIG_PINCTRL_LAN969X)		+= pinctrl-lan969x.o
 obj-$(CONFIG_PINCTRL_MESON)		+= meson/
 obj-$(CONFIG_PINCTRL_MSCC)		+= mscc/
 obj-$(CONFIG_PINCTRL_MTK)		+= mediatek/
