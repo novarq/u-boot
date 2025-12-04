@@ -227,6 +227,14 @@ config PINCTRL_INTEL
 	  driver which must be separately enabled. The driver supports setting
 	  pins on start-up and changing the GPIO attributes.
 
+config PINCTRL_LAN969X
+	bool "Microchip LAN969X pinctrl driver"
+	depends on DM && TARGET_LAN969X
+	select PINCONF
+	select REGMAP
+	help
+	  This option is to enable the LAN969X pinctrl driver.
+
 config PINCTRL_PIC32
 	bool "Microchip PIC32 pin-control and pin-mux driver"
 	depends on DM && MACH_PIC32
