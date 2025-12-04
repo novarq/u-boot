@@ -869,6 +869,14 @@ config ARCH_MEDIATEK
 	  Support for the MediaTek SoCs family developed by MediaTek Inc.
 	  Please refer to doc/README.mediatek for more information.
 
+config ARCH_MICROCHIPSW
+	bool "Microchip switch SoCs"
+	select DM
+	select OF_CONTROL
+	imply CMD_DM
+	help
+	  Support for Microchip switch focused SoC-s.
+
 config ARCH_MMP
 	bool "Marvell MMP"
 	select ARM64
@@ -2399,6 +2407,8 @@ source "arch/arm/mach-imx/Kconfig"
 source "arch/arm/mach-nexell/Kconfig"
 
 source "arch/arm/mach-npcm/Kconfig"
+
+source "arch/arm/mach-microchipsw/Kconfig"
 
 source "board/armltd/total_compute/Kconfig"
 source "board/armltd/corstone1000/Kconfig"

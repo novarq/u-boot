@@ -1,0 +1,18 @@
+
+#include <dt-bindings/mscc/sparx5_data.h>
+
+&switch {
+	/delete-node/ ethernet-ports;
+
+	ethernet-ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port29: port@29 {
+			reg = <29>;
+			phy-handle = <&phy3>;
+			phy-mode = "rgmii-rxid";
+			phys = <IF_RGMII>;
+		};
+	};
+};

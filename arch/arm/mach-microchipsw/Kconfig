@@ -1,0 +1,31 @@
+if ARCH_MICROCHIPSW
+
+config SYS_SOC
+	default "microchipsw"
+
+config SYS_VENDOR
+	default "microchip"
+
+choice
+	prompt "Microchip switch SoC select"
+
+config TARGET_LAN969X
+	bool "Microchip LAN969x SoC"
+	select ARM64
+	select ARCH_SUPPORT_TFABOOT
+	select DM_SERIAL
+	select DM_GPIO
+	help
+	  Support for Microchip LAN969X reference board platform.
+
+endchoice
+
+config SYS_BOARD
+	string "Board name"
+	default "lan969x" if TARGET_LAN969X
+	default ""
+
+config SYS_CONFIG_NAME
+	default "lan969x" if TARGET_LAN969X
+
+endif
