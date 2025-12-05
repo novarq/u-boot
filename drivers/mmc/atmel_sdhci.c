@@ -15,6 +15,7 @@
 
 #define ATMEL_SDHC_MIN_FREQ	400000
 #define ATMEL_SDHC_GCK_RATE	240000000
+#define LAN969X_GCK_RATE	100000000
 
 #define ATMEL_SDHC_MC1R 0x204
 #define ATMEL_SDHC_MC1R_FCD	0x80
@@ -169,6 +170,7 @@ static const struct udevice_id atmel_sdhci_ids[] = {
 	{ .compatible = "atmel,sama5d2-sdhci", .data = ATMEL_SDHC_GCK_RATE },
 	{ .compatible = "microchip,sam9x60-sdhci", .data = ATMEL_SDHC_GCK_RATE },
 	{ .compatible = "microchip,sama7g5-sdhci", .data = ATMEL_SDHC_GCK_RATE },
+	{ .compatible = "microchip,lan9691-sdhci", .data = LAN969X_GCK_RATE },
 	{ }
 };
 
