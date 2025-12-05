@@ -1,3 +1,10 @@
+config CLK_LAN966X
+	bool "Microchip LAN966X and LAN969X clock support"
+	depends on ARCH_MICROCHIPSW
+	depends on CLK
+	help
+	  Clock driver for Microchip LAN969X platforms.
+
 config CLK_MPFS
 	bool "Clock support for Microchip PolarFire SoC"
 	depends on CLK && CLK_CCF
