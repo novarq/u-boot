@@ -24,7 +24,9 @@
 #include <linux/io.h>
 #include <linux/iopoll.h>
 #include <linux/ioport.h>
+#if IS_ENABLED(CONFIG_ARCH_AT91)
 #include <mach/clk.h>
+#endif
 #include <spi.h>
 #include <spi-mem.h>
 
@@ -1311,6 +1313,11 @@ static const struct atmel_qspi_caps atmel_sama7g5_qspi_caps = {
 	.has_gclk = true,
 };
 
+static const struct atmel_qspi_caps microchip_lan9691_qspi_caps = {
+	.has_gclk = true,
+	.has_ricr = true,
+};
+
 static const struct udevice_id atmel_qspi_ids[] = {
 	{
 		.compatible = "atmel,sama5d2-qspi",
@@ -1327,6 +1334,10 @@ static const struct udevice_id atmel_qspi_ids[] = {
 	{
 		.compatible = "microchip,sama7g5-qspi",
 		.data = (ulong)&atmel_sama7g5_qspi_caps,
+	},
+	{
+		.compatible = "microchip,lan9691-qspi",
+		.data = (ulong)&microchip_lan9691_qspi_caps,
 	},
 	{ /* sentinel */ }
 };
