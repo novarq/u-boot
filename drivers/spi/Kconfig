@@ -103,7 +103,7 @@ config ATH79_SPI
 
 config ATMEL_QSPI
 	bool "Atmel Quad SPI Controller"
-	depends on ARCH_AT91
+	depends on ARCH_AT91 || ARCH_MICROCHIPSW
 	select SPI_MEM
 	help
 	  Enable the Atmel Quad SPI controller in master mode. This driver
