@@ -44,3 +44,10 @@ config MSCC_FELIX_SWITCH
 	help
 	  This driver supports the Ethernet switch integrated in the
 	  NXP LS1028A SoC.
+
+config MSCC_LAN969X_SWITCH
+	bool "Microchip LAN966X switch driver"
+	depends on DM_ETH && TARGET_LAN969X
+	select PHYLIB
+	help
+	  This driver supports the LAN969X network switch device.
