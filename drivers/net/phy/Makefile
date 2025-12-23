@@ -25,6 +25,7 @@ obj-y += mediatek/
 obj-y += airoha/
 obj-$(CONFIG_PHY_MICREL_KSZ8XXX) += micrel_ksz8xxx.o
 obj-$(CONFIG_PHY_MICREL_KSZ90X1) += micrel_ksz90x1.o
+obj-$(CONFIG_PHY_MICROCHIP) += microchip.o
 obj-$(CONFIG_PHY_MESON_GXL) += meson-gxl.o
 obj-$(CONFIG_PHY_MOTORCOMM) += motorcomm.o
 obj-$(CONFIG_PHY_NATSEMI) += natsemi.o
