@@ -8,7 +8,9 @@
 #include <dm.h>
 #include <malloc.h>
 #include <sdhci.h>
+#if IS_ENABLED(CONFIG_ARCH_AT91)
 #include <asm/arch/clk.h>
+#endif
 #include <asm/global_data.h>
 
 #define ATMEL_SDHC_MIN_FREQ	400000
