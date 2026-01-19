@@ -163,7 +163,8 @@ config SYS_I2C_ADI
 
 config SYS_I2C_AT91
 	bool "Atmel I2C driver"
-	depends on DM_I2C && ARCH_AT91
+	depends on DM_I2C
+	depends on ARCH_AT91 || ARCH_MICROCHIPSW
 	help
 	  Add support for the Atmel I2C driver. A serious problem is that there
 	  is no documented way to issue repeated START conditions for more than
