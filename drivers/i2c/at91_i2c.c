@@ -14,7 +14,9 @@
 #include <fdtdec.h>
 #include <i2c.h>
 #include <linux/bitops.h>
+#if IS_ENABLED(CONFIG_ARCH_AT91)
 #include <mach/clk.h>
+#endif
 
 #include "at91_i2c.h"
 
