@@ -1,0 +1,37 @@
+
+#include "lan969x-u-boot.dtsi"
+#include <dt-bindings/mscc/sparx5_data.h>
+
+/ {
+	aliases {
+		i2c8 = &i2c_poe;
+	};
+};
+
+&switch {
+	/delete-node/ ethernet-ports;
+
+	ethernet-ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port29: port@29 {
+			reg = <29>;
+			phy-handle = <&phy3>;
+			phy-mode = "rgmii-rxid";
+			phys = <IF_RGMII>;
+		};
+	};
+};
+
+&sdmmc0 {
+	pinctrl-0 = <&emmc_sd_pins>;
+	pinctrl-names = "default";
+	bus-width = <8>;
+	mmc-ddr-1_8v;
+	non-removable;
+	no-sd;
+	no-sdio;
+	disable-wp;
+	status = "okay";
+};
