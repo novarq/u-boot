@@ -1210,7 +1210,8 @@ dtb-$(CONFIG_TARGET_CORSTONE1000) += corstone1000-mps3.dtb \
 
 dtb-$(CONFIG_TARGET_COREPRIMEVELTE) += pxa1908-samsung-coreprimevelte.dtb
 
-dtb-$(CONFIG_ARCH_MICROCHIPSW) += lan9696-ev23x71a.dtb
+dtb-$(CONFIG_ARCH_MICROCHIPSW) += lan9696-ev23x71a.dtb \
+				  lan9696-tactical-1000.dtb
 
 include $(srctree)/scripts/Makefile.dts
 
