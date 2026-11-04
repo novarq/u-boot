@@ -70,6 +70,7 @@ obj-$(CONFIG_$(PHASE_)SPACEMIT_GPIO)	+= spacemit_gpio.o
 obj-$(CONFIG_MT7620_GPIO)	+= mt7620_gpio.o
 obj-$(CONFIG_MT7621_GPIO)	+= mt7621_gpio.o
 obj-$(CONFIG_MSCC_SGPIO)	+= mscc_sgpio.o
+obj-$(CONFIG_MICROCHIP_SGPIO)	+= microchip_sgpio.o
 obj-$(CONFIG_NX_GPIO)		+= nx_gpio.o
 obj-$(CONFIG_SIFIVE_GPIO)	+= sifive-gpio.o
 obj-$(CONFIG_NOMADIK_GPIO)	+= nmk_gpio.o

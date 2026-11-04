@@ -331,6 +331,14 @@ config MSCC_SGPIO
 	  SIO controller is to connect control signals from SFP
 	  modules and to act as an LED controller.
 
+config MICROCHIP_SGPIO
+	bool "Microchip LAN969x serial GPIO driver"
+	depends on DM_GPIO && ARCH_MICROCHIPSW
+	select CLK
+	help
+	  Support the input and output SGPIO banks on LAN969x switches.
+	  These GPIOs are used for I2C mux selection and board signals.
+
 config MSM_GPIO
 	bool "Qualcomm GPIO driver"
 	depends on DM_GPIO && ARCH_SNAPDRAGON
